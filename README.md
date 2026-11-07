@@ -2,7 +2,7 @@
 
 **ToolMoa** · Developed by **jhoon-dev**.
 
-A new chapter for the original Font V: a system font explorer for iOS and Android, built with Flutter. Font browsing and previews work offline; optional catalog ads use the internet.
+A new chapter for the original Font V: a system font explorer for iOS and Android, built with Flutter. Font browsing and previews work offline; catalog ads use the internet.
 
 Source and CI: [jhoon-dev/fontv on GitHub](https://github.com/jhoon-dev/fontv). iOS TestFlight signing runs on GitHub's macOS runner; Android release bundles use a Linux runner. Signing credentials are held in protected Actions environments.
 

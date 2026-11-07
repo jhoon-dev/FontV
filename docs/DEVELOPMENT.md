@@ -65,6 +65,10 @@ iOS는 `UIFont.familyNames`와 `fontNames(forFamilyName:)`를 사용한다. Andr
 
 목록은 같은 패밀리의 Regular·Bold·Italic 등을 기본적으로 접어서 보여준다. 검색 시에는 일치하는 스타일만 묶고 자동으로 펼치며, 즐겨찾기에서는 저장한 스타일만 포함한다. 오른쪽 인덱스는 현재 목록에 존재하는 문자만 보여주며 탭과 세로 드래그를 지원한다. 묶음 펼침과 글자 확대에 맞춰 행 위치를 다시 계산해 중간 폰트 미리보기를 모두 만들지 않고 목표 문자로 이동한다. 아이콘은 기존 분홍 배경에 `Font V`를 한 줄로 배치한다. 한 번의 텍스트 윤곽 생성으로 동일한 서체·Regular 굵기·글자 크기·기준선을 적용하며, 글자를 따로 확대하지 않는다. `tool/generate_icons.ps1`에서 iOS·Android·웹 크기를 함께 생성한다.
 
+## Android 출시 실행 검증
+
+Android 출시 최적화에는 `android/app/proguard-rules.pro`를 적용한다. 광고 SDK의 전이 의존성인 Room/WorkManager가 반사로 호출하는 생성자를 보존해야 한다. 디버그 실행만으로 이 문제를 검증할 수 없으므로 `Android internal bundle`은 최적화된 출시 APK를 에뮬레이터에서 두 번 실행한 후에만 AAB를 제공한다. SDK 업데이트 후에도 이 실행 검사를 유지한다.
+
 ## iOS 신규 배포
 
 번들 ID는 **`app.toolmoa.fontv`**다. 앱 버전은 2.0.0, 최초 내부 테스트 빌드 번호는 2다. 새 App ID와 App Store Connect 앱 `Font V - ToolMoa`(Apple ID `6831850547`)를 등록했다. 이전 앱의 1.1 초안은 사용하지 않는다. 기존 앱의 판매 중단이나 기록 제거는 별도 작업이다.

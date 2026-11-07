@@ -86,3 +86,22 @@
 - 전체 목록에 패밀리 8개마다 광고를 삽입한다. 위젯 테스트에서는 광고 대역을 사용해 패밀리 경계, 오른쪽 인덱스 이동, 실패 슬롯 제거, 검색·즐겨찾기의 광고 제외와 인덱스 영역 분리를 확인했다. 대역 테스트는 실제 광고 수신을 입증하지 않으므로 별도 네이티브 SDK smoke test를 추가했다.
 - 단위·위젯 테스트 총 18개, 정적 분석, 웹 빌드 통과. 390×844의 한국어·영어 설정 및 접힌/펼친/인덱스 이동 화면도 캡처했다. 이 UI 캡처의 폰트 목록은 레이아웃 검증용 대표 데이터다.
 - iOS SPM이 `build/ios/SourcePackages/` 아래에 복사한 외부 패키지의 자체 테스트가 앱 분석에 섞이는 문제는 생성 폴더 `build/**`를 제외하도록 수정했다. 앱 소스 및 테스트에 대한 lint 규칙은 유지한다.
+
+## Android 출시 크래시 재현 및 빌드 8
+
+- Play에 배포한 AAB 7을 그대로 다운로드해 bundletool로 설치 APK를 만들고 Android 13에서 실행했다. `InitializationProvider → WorkManager → WorkDatabase` 초기화 중 앱이 종료되는 것을 재현했다: https://github.com/jhoon-dev/fontv/actions/runs/42341494112 . 광고 앱 ID는 정상적으로 포함돼 있었다.
+- 광고 SDK의 전이 의존성인 WorkManager 2.7.0 / Room 2.2.5의 오래된 소비자 규칙은 클래스만 보존한다. R8 full mode에서 `WorkDatabase_Impl`과 InputMerger 구현의 인자 없는 생성자가 제거된 것을 실제 매핑 파일에서 확인했다. `android/app/proguard-rules.pro`에 이 두 유형의 반사 생성자를 보존하는 규칙을 추가했다. 전체 최적화를 끄지 않았다. 빌드 8의 매핑에는 해당 생성자가 다시 존재한다.
+- Android 서명 워크플로는 이제 AAB와 같은 출시 설정의 APK를 빌드한 뒤, 실제 Android에서 두 번 실행해 프로세스·포그라운드 유지와 앱 로그를 검사한다. 검사를 통과해야 Play용 AAB 아티팩트를 업로드한다. 별도 `Android release runtime`은 성공한 AAB를 직접 설치 가능한 APK로 변환해 재검증하며 기본 입력은 최신 성공 빌드를 선택한다.
+- 펼친 패밀리는 테마 색의 폴더 헤더로 표시하고 하위 서체는 들여쓰기와 연결선, 흰색 카드로 구분했다. 하위 항목의 주제목은 Regular·Bold 같은 스타일이고 보조 줄에는 전체 서체 이름을 표시한다. 제목 14–15pt, 보조 글자 12pt로 키웠고 문자 인덱스도 11pt로 올렸다. 전체 설정·설명 라벨의 작은 글자도 확대했다.
+- 정적 분석, 단위·위젯 테스트 18개와 웹 빌드 통과. 1.6배 글자 환경의 목록과 빠른 이동을 포함하며, 대표 데이터의 펼친 그룹 및 한국어·영어 설정 캡처도 확인했다.
+- iOS 빌드 7은 최소 iOS 15를 유지해 Apple 검증·업로드·내부 그룹 배포에 성공했다: https://github.com/jhoon-dev/fontv/actions/runs/42340802362 . Google UMP의 `100.0` 리소스 스텁은 동적 참조가 없고 원본 정적 SDK 객체가 iOS 12를 지원함을 함께 확인하는 방식으로 검사한다. 실제 로드하는 프레임워크의 OS 요구 버전 검사는 유지한다.
+
+### 빌드 8 CI 최종 결과
+
+- 기본 분석·테스트·Android 디버그 및 iOS 시뮬레이터 빌드: https://github.com/jhoon-dev/fontv/actions/runs/42342340752 — 성공.
+- Android 서명 AAB·출시 APK와 실제 두 차례 시작 검사: https://github.com/jhoon-dev/fontv/actions/runs/42342113867 — 성공. AAB SHA-256은 `21eaa646eeadf48ce4bc2687edf83d13c25e7d3f4b10f43ea5408270a3e15851`이다.
+- 배포 AAB를 변환해 Android 10(API 29)·13(API 33)·16(API 36)에서 각각 두 번 실행하고 목록을 스크롤한 검사: https://github.com/jhoon-dev/fontv/actions/runs/42342978869 — 세 환경 모두 성공. 이전 AAB 7로 실패했던 동일 실행 경로가 수정 빌드에서 통과했다.
+- iOS Google 공식 네이티브 테스트 광고를 320px 템플릿에 실제 로드하고 표시한 검사: https://github.com/jhoon-dev/fontv/actions/runs/42342119807 — 성공. 표시 중의 시뮬레이터 화면도 보관했다. SDK 초기화는 화면을 먼저 만든 뒤 실제 비동기 실행으로 호출하며 테스트와 단계 모두 제한 시간을 둔다.
+- iOS 서명·Apple 검증·업로드·내부 테스트: https://github.com/jhoon-dev/fontv/actions/runs/42342116875 — 성공. 빌드 `c09ed159-7d27-429a-9d73-888b3ebd9ec8`의 상태는 `IN_BETA_TESTING`이며 `ToolMoa Internal` 그룹에 연결했다. 한국어 테스트 안내를 저장했다.
+- Node 20 기반 Actions는 Node 24 기반 공식 버전으로 갱신하고 SHA를 고정했다. 과거 실패·취소 이력은 보존하며 수정 후 5개 워크플로의 최신 실행은 모두 성공이다.
+- Play Console에서 동일한 CI AAB 8을 수락했고 내부 테스트 트랙의 `최신 출시 버전: 8 (2.0.0)`, `활성`, `내부 테스터에게 제공됨`을 확인했다. 기존 테스터 목록을 유지했으며 한국어·영어 출시 안내를 등록했다. 참여 링크는 https://play.google.com/apps/internaltest/4701307094679828370 이다. 광고 포함 선언도 저장했다. App Store/Play 프로덕션 심사와 AdMob의 공개 스토어 연결·게재 검토는 아직 수행하지 않았고 내부 빌드는 테스트 광고를 사용한다.
