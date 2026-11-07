@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'controller.dart';
 import 'font_preview.dart';
+import 'font_catalog.dart';
 import 'font_service.dart';
 
 const _canvas = Color(0xFFF8F7F4);
@@ -103,24 +104,27 @@ class _FontHomeState extends State<FontHome> {
       appBar: AppBar(
         toolbarHeight: 78,
         titleSpacing: 24,
-        title: Row(
-          children: [
-            Text(
-              'font',
-              style: TextStyle(
-                fontSize: 29,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -1.8,
-                color: c.skin.color,
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'font',
+                style: TextStyle(
+                  fontSize: 29,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1.8,
+                  color: c.skin.color,
+                ),
               ),
-            ),
-            const Text(
-              ' V',
-              style: TextStyle(fontSize: 29, fontWeight: FontWeight.w300),
-            ),
-            const SizedBox(width: 14),
-            const Flexible(
-              child: Text(
+              const Text(
+                ' V',
+                style: TextStyle(fontSize: 29, fontWeight: FontWeight.w300),
+              ),
+              const SizedBox(width: 14),
+              const Text(
                 'TOOLMOA',
                 maxLines: 1,
                 overflow: TextOverflow.fade,
@@ -132,8 +136,8 @@ class _FontHomeState extends State<FontHome> {
                   color: _muted,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           Padding(
@@ -224,158 +228,109 @@ class _FontHomeState extends State<FontHome> {
   }
 
   Widget _catalog(BuildContext context, bool wide, List<FontFace> fonts) {
-    return CustomScrollView(
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      slivers: [
-        SliverToBoxAdapter(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 22),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      c.tab == 1
-                          ? 'YOUR COLLECTION'
-                          : 'A CLOSER LOOK AT LETTERS',
-                      style: TextStyle(
-                        color: c.skin.color,
-                        fontSize: 10,
-                        letterSpacing: 2.1,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      c.tab == 1 ? '마음에 담은 서체.' : '글자마다,\n새로운 가능성.',
-                      style: const TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w700,
-                        height: 1.2,
-                        letterSpacing: -1.6,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      c.service.isDemo
-                          ? '브라우저 데모 · 실제 기기의 폰트는 모바일 앱에서 확인하세요.'
-                          : '${c.familyCount}개 패밀리, ${c.fonts.length}개 서체. 나만의 조합을 찾아보세요.',
-                      style: const TextStyle(
-                        color: _muted,
-                        fontSize: 12,
-                        height: 1.6,
-                      ),
-                    ),
-                    if (c.storageError != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          c.storageError!,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 20),
-                    TextField(
-                      key: const Key('font-search'),
-                      controller: _search,
-                      onChanged: c.setQuery,
-                      textInputAction: TextInputAction.search,
-                      decoration: InputDecoration(
-                        hintText: '폰트 이름, 패밀리 검색',
-                        hintStyle: const TextStyle(color: _muted, fontSize: 13),
-                        prefixIcon: const Icon(Icons.search_rounded, size: 21),
-                        suffixIcon: c.query.isEmpty
-                            ? null
-                            : IconButton(
-                                tooltip: '검색 지우기',
-                                onPressed: () {
-                                  _search.clear();
-                                  c.setQuery('');
-                                },
-                                icon: const Icon(Icons.close, size: 18),
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
-                child: Row(
-                  children: [
-                    Text(
-                      c.tab == 1 ? '즐겨찾기' : '모든 서체',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(width: 7),
-                    Text(
-                      '${fonts.length}',
-                      style: TextStyle(color: c.skin.color, fontSize: 12),
-                    ),
-                    const Spacer(),
-                    const Text(
-                      'A — Z',
-                      style: TextStyle(
-                        color: _muted,
-                        fontSize: 10,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (c.loading || c.error != null || fonts.isEmpty)
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: c.loading
-                ? const Center(child: CircularProgressIndicator())
-                : c.error != null
-                ? _EmptyState(
-                    icon: Icons.error_outline,
-                    title: c.error!,
-                    action: TextButton(
-                      onPressed: c.initialize,
-                      child: const Text('다시 시도'),
-                    ),
-                  )
-                : _EmptyState(
-                    icon: c.query.isNotEmpty
-                        ? Icons.search_off_rounded
-                        : Icons.bookmark_border_rounded,
-                    title: c.query.isNotEmpty
-                        ? '일치하는 서체가 없어요.'
-                        : '마음에 드는 서체를 저장해보세요.',
-                    subtitle: c.query.isNotEmpty
-                        ? '다른 이름이나 패밀리로 검색해보세요.'
-                        : '서체 옆의 북마크를 누르면 여기에 모여요.',
+    return FontCatalog(
+      controller: c,
+      fonts: fonts,
+      selectedFontId: wide ? _selected?.id : null,
+      onOpen: (face) => _open(face, wide),
+      header: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 52, 22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  c.tab == 1 ? 'YOUR COLLECTION' : 'A CLOSER LOOK AT LETTERS',
+                  style: TextStyle(
+                    color: c.skin.color,
+                    fontSize: 10,
+                    letterSpacing: 2.1,
+                    fontWeight: FontWeight.w700,
                   ),
-          )
-        else
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            sliver: SliverList.separated(
-              itemCount: fonts.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (context, index) => _FontCard(
-                controller: c,
-                face: fonts[index],
-                selected: wide && _selected?.id == fonts[index].id,
-                onTap: () => _open(fonts[index], wide),
-              ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  c.tab == 1 ? '마음에 담은 서체.' : '글자마다,\n새로운 가능성.',
+                  style: const TextStyle(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                    letterSpacing: -1.6,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  c.service.isDemo
+                      ? '브라우저 데모 · 실제 기기의 폰트는 모바일 앱에서 확인하세요.'
+                      : '${c.familyCount}개 패밀리, ${c.fonts.length}개 서체. 나만의 조합을 찾아보세요.',
+                  style: const TextStyle(
+                    color: _muted,
+                    fontSize: 12,
+                    height: 1.6,
+                  ),
+                ),
+                if (c.storageError != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      c.storageError!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 20),
+                TextField(
+                  key: const Key('font-search'),
+                  controller: _search,
+                  onChanged: c.setQuery,
+                  textInputAction: TextInputAction.search,
+                  decoration: InputDecoration(
+                    hintText: '폰트 이름, 패밀리 검색',
+                    hintStyle: const TextStyle(color: _muted, fontSize: 13),
+                    prefixIcon: const Icon(Icons.search_rounded, size: 21),
+                    suffixIcon: c.query.isEmpty
+                        ? null
+                        : IconButton(
+                            tooltip: '검색 지우기',
+                            onPressed: () {
+                              _search.clear();
+                              c.setQuery('');
+                            },
+                            icon: const Icon(Icons.close, size: 18),
+                          ),
+                  ),
+                ),
+              ],
             ),
           ),
-      ],
+        ],
+      ),
+      emptyState: c.loading
+          ? const Center(child: CircularProgressIndicator())
+          : c.error != null
+          ? _EmptyState(
+              icon: Icons.error_outline,
+              title: c.error!,
+              action: TextButton(
+                onPressed: c.initialize,
+                child: const Text('다시 시도'),
+              ),
+            )
+          : _EmptyState(
+              icon: c.query.isNotEmpty
+                  ? Icons.search_off_rounded
+                  : Icons.bookmark_border_rounded,
+              title: c.query.isNotEmpty
+                  ? '일치하는 서체가 없어요.'
+                  : '마음에 드는 서체를 저장해보세요.',
+              subtitle: c.query.isNotEmpty
+                  ? '다른 이름이나 패밀리로 검색해보세요.'
+                  : '서체 옆의 북마크를 누르면 여기에 모여요.',
+            ),
     );
   }
 
@@ -383,95 +338,6 @@ class _FontHomeState extends State<FontHome> {
   void dispose() {
     _search.dispose();
     super.dispose();
-  }
-}
-
-class _FontCard extends StatelessWidget {
-  const _FontCard({
-    required this.controller,
-    required this.face,
-    required this.onTap,
-    this.selected = false,
-  });
-  final FontController controller;
-  final FontFace face;
-  final VoidCallback onTap;
-  final bool selected;
-  @override
-  Widget build(BuildContext context) {
-    final c = controller;
-    final favorite = c.favorites.contains(face.id);
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        key: ValueKey('font:${face.id}'),
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: selected ? c.skin.color : _line),
-          ),
-          padding: const EdgeInsets.fromLTRB(18, 16, 10, 14),
-          child: Row(
-            children: [
-              ExcludeSemantics(
-                child: SizedBox(
-                  width: 72,
-                  height: 60,
-                  child: FontPreview(
-                    service: c.service,
-                    face: face,
-                    text: 'Ag',
-                    size: 40,
-                    color: _text,
-                    thumbnail: true,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      face.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      face.style,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: _muted, fontSize: 11),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                key: ValueKey('favorite:${face.id}'),
-                tooltip: favorite ? '즐겨찾기 해제' : '즐겨찾기 추가',
-                onPressed: () => c.toggleFavorite(face.id),
-                icon: Icon(
-                  favorite
-                      ? Icons.bookmark_rounded
-                      : Icons.bookmark_border_rounded,
-                  color: favorite ? c.skin.color : _muted,
-                  size: 21,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 

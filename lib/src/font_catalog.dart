@@ -1,0 +1,596 @@
+import 'dart:math' as math;
+import 'package:flutter/material.dart';
+import 'controller.dart';
+import 'font_catalog_model.dart';
+import 'font_preview.dart';
+import 'font_service.dart';
+
+const _ink = Color(0xFF242329);
+const _muted = Color(0xFF78767E);
+const _line = Color(0xFFE8E5E2);
+
+class FontCatalog extends StatefulWidget {
+  const FontCatalog({
+    super.key,
+    required this.controller,
+    required this.fonts,
+    required this.header,
+    required this.emptyState,
+    required this.onOpen,
+    this.selectedFontId,
+  });
+  final FontController controller;
+  final List<FontFace> fonts;
+  final Widget header;
+  final Widget emptyState;
+  final ValueChanged<FontFace> onOpen;
+  final String? selectedFontId;
+
+  @override
+  State<FontCatalog> createState() => _FontCatalogState();
+}
+
+class _FontCatalogState extends State<FontCatalog> {
+  final _scroll = ScrollController(keepScrollOffset: false);
+  final _headerKey = GlobalKey();
+  final _expanded = <String>{};
+  final _collapsedSearch = <String>{};
+  final _sectionRows = <String, int>{};
+  List<_CatalogRow> _rows = [];
+  double _rowExtent = 108;
+  String? _activeLabel;
+  bool _scrubbing = false;
+  late String _lastQuery;
+  late int _lastTab;
+  int _filterGeneration = 0;
+
+  bool get _searching => widget.controller.query.trim().isNotEmpty;
+  double get _headerHeight {
+    final box = _headerKey.currentContext?.findRenderObject();
+    return box is RenderBox && box.hasSize ? box.size.height : 0;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _lastQuery = widget.controller.query;
+    _lastTab = widget.controller.tab;
+    _scroll.addListener(_onScroll);
+  }
+
+  @override
+  void didUpdateWidget(covariant FontCatalog oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_lastQuery != widget.controller.query ||
+        _lastTab != widget.controller.tab) {
+      _lastQuery = widget.controller.query;
+      _lastTab = widget.controller.tab;
+      _collapsedSearch.clear();
+      _activeLabel = null;
+      _scrubbing = false;
+      final generation = ++_filterGeneration;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && generation == _filterGeneration && _scroll.hasClients) {
+          _scroll.jumpTo(0);
+        }
+      });
+    }
+  }
+
+  bool _isExpanded(FontFamilyGroup group) => _searching
+      ? !_collapsedSearch.contains(group.family)
+      : _expanded.contains(group.family);
+
+  void _toggle(FontFamilyGroup group) => setState(() {
+    final set = _searching ? _collapsedSearch : _expanded;
+    if (!set.remove(group.family)) set.add(group.family);
+  });
+
+  void _toggleAll(List<FontFamilyGroup> groups, bool expanded) => setState(() {
+    for (final group in groups) {
+      if (_searching) {
+        expanded
+            ? _collapsedSearch.add(group.family)
+            : _collapsedSearch.remove(group.family);
+      } else {
+        expanded ? _expanded.remove(group.family) : _expanded.add(group.family);
+      }
+    }
+  });
+
+  void _onScroll() {
+    if (!_scroll.hasClients || _rows.isEmpty || _scrubbing) return;
+    final index = ((_scroll.offset - _headerHeight) / _rowExtent).floor().clamp(
+      0,
+      _rows.length - 1,
+    );
+    final label = _rows[index].group.indexLabel;
+    if (_activeLabel != label && mounted) setState(() => _activeLabel = label);
+  }
+
+  void _jumpTo(String label) {
+    final index = _sectionRows[label];
+    if (index == null || !_scroll.hasClients) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      _activeLabel = label;
+      _scrubbing = true;
+    });
+    // Each visible row has a measured text-scaled extent. Collapsing a family
+    // changes this flattened row map, so jumps stay exact without building the
+    // hundreds of native font previews between the current and target letters.
+    _scroll.jumpTo(
+      (_headerHeight + index * _rowExtent).clamp(
+        0,
+        _scroll.position.maxScrollExtent,
+      ),
+    );
+  }
+
+  void _endScrub() {
+    if (_scrubbing) setState(() => _scrubbing = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.controller;
+    final groups = groupFontFamilies(widget.fonts);
+    final expandable = groups.where((group) => group.faces.length > 1).toList();
+    final allExpanded = expandable.isNotEmpty && expandable.every(_isExpanded);
+    final scaler = MediaQuery.textScalerOf(context);
+    _rowExtent = math.max(
+      108,
+      44 +
+          math.max(60, scaler.scale(13) * 2 * 1.4 + scaler.scale(11) * 1.4 + 6),
+    );
+    _rows = [];
+    _sectionRows.clear();
+    for (final group in groups) {
+      _sectionRows.putIfAbsent(group.indexLabel, () => _rows.length);
+      if (group.faces.length == 1) {
+        _rows.add(_CatalogRow(group, group.faces.single));
+      } else {
+        _rows.add(_CatalogRow(group, null));
+        if (_isExpanded(group)) {
+          _rows.addAll(
+            group.faces.map((face) => _CatalogRow(group, face, nested: true)),
+          );
+        }
+      }
+    }
+    final labels = _sectionRows.keys.toList();
+    final active = labels.contains(_activeLabel)
+        ? _activeLabel
+        : labels.firstOrNull;
+    return Stack(
+      children: [
+        CustomScrollView(
+          key: const Key('font-catalog-scroll'),
+          controller: _scroll,
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          slivers: [
+            SliverToBoxAdapter(
+              child: Column(
+                key: _headerKey,
+                children: [
+                  widget.header,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 52, 12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: c.tab == 1 ? '즐겨찾기  ' : '폰트 패밀리  ',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: _ink,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text:
+                                      '${groups.length}개 · ${widget.fonts.length}서체',
+                                  style: TextStyle(color: c.skin.color),
+                                ),
+                              ],
+                            ),
+                            style: const TextStyle(fontSize: 12),
+                            maxLines: 2,
+                          ),
+                        ),
+                        if (expandable.isNotEmpty)
+                          TextButton(
+                            key: const Key('toggle-all-families'),
+                            onPressed: () =>
+                                _toggleAll(expandable, allExpanded),
+                            child: Text(
+                              allExpanded ? '모두 접기' : '모두 펼치기',
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (c.loading || c.error != null || _rows.isEmpty)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: widget.emptyState,
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 52, 24),
+                sliver: SliverFixedExtentList(
+                  itemExtent: _rowExtent,
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final row = _rows[index];
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: 10,
+                        left: row.nested ? 10 : 0,
+                      ),
+                      child: row.face == null
+                          ? _FamilyCard(
+                              controller: c,
+                              group: row.group,
+                              expanded: _isExpanded(row.group),
+                              onTap: () => _toggle(row.group),
+                            )
+                          : _FontCard(
+                              controller: c,
+                              face: row.face!,
+                              selected: widget.selectedFontId == row.face!.id,
+                              onTap: () => widget.onOpen(row.face!),
+                            ),
+                    );
+                  }, childCount: _rows.length),
+                ),
+              ),
+          ],
+        ),
+        if (!c.loading && c.error == null && labels.isNotEmpty)
+          Positioned(
+            right: 2,
+            width: 44,
+            top: 8,
+            bottom: 8,
+            child: _AlphabetIndex(
+              labels: labels,
+              active: active,
+              color: c.skin.color,
+              onSelect: _jumpTo,
+              onEnd: _endScrub,
+            ),
+          ),
+        if (_scrubbing && active != null)
+          Positioned(
+            right: 58,
+            top: 0,
+            bottom: 0,
+            child: IgnorePointer(
+              child: Center(
+                child: Container(
+                  width: 72,
+                  height: 72,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: c.skin.color,
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: .12),
+                        blurRadius: 16,
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    active,
+                    textScaler: TextScaler.noScaling,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 36,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+}
+
+class _CatalogRow {
+  const _CatalogRow(this.group, this.face, {this.nested = false});
+  final FontFamilyGroup group;
+  final FontFace? face;
+  final bool nested;
+}
+
+class _AlphabetIndex extends StatelessWidget {
+  const _AlphabetIndex({
+    required this.labels,
+    required this.active,
+    required this.color,
+    required this.onSelect,
+    required this.onEnd,
+  });
+  final List<String> labels;
+  final String? active;
+  final Color color;
+  final ValueChanged<String> onSelect;
+  final VoidCallback onEnd;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, bounds) {
+      final height = math.min(bounds.maxHeight, labels.length * 20.0);
+      void select(double y) => onSelect(
+        labels[(y / height * labels.length).floor().clamp(
+          0,
+          labels.length - 1,
+        )],
+      );
+      return Center(
+        child: SizedBox(
+          width: 44,
+          height: height,
+          child: GestureDetector(
+            key: const Key('font-fast-index'),
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (details) => select(details.localPosition.dy),
+            onTapUp: (_) => onEnd(),
+            onTapCancel: onEnd,
+            onVerticalDragStart: (details) => select(details.localPosition.dy),
+            onVerticalDragUpdate: (details) => select(details.localPosition.dy),
+            onVerticalDragEnd: (_) => onEnd(),
+            onVerticalDragCancel: onEnd,
+            child: Column(
+              children: [
+                for (final label in labels)
+                  Expanded(
+                    child: Semantics(
+                      key: ValueKey('font-index:$label'),
+                      button: true,
+                      selected: active == label,
+                      label: '$label 시작 폰트로 이동',
+                      onTap: () {
+                        onSelect(label);
+                        onEnd();
+                      },
+                      child: ExcludeSemantics(
+                        child: Center(
+                          child: Container(
+                            width: 22,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: active == label
+                                  ? color.withValues(alpha: .12)
+                                  : null,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              label,
+                              textScaler: TextScaler.noScaling,
+                              style: TextStyle(
+                                color: color,
+                                fontSize: 10,
+                                fontWeight: active == label
+                                    ? FontWeight.w800
+                                    : FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class _FamilyCard extends StatelessWidget {
+  const _FamilyCard({
+    required this.controller,
+    required this.group,
+    required this.expanded,
+    required this.onTap,
+  });
+  final FontController controller;
+  final FontFamilyGroup group;
+  final bool expanded;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label:
+        '${group.family}, ${group.faces.length}개 서체, ${expanded ? '접기' : '펼치기'}',
+    child: Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        key: ValueKey('family:${group.family}'),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: expanded
+                  ? controller.skin.color.withValues(alpha: .5)
+                  : _line,
+            ),
+          ),
+          child: ExcludeSemantics(
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 56,
+                  height: 60,
+                  child: FontPreview(
+                    service: controller.service,
+                    face: group.faces.first,
+                    text: 'Ag',
+                    size: 34,
+                    color: _ink,
+                    thumbnail: true,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        group.family,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${group.faces.length}개 서체 · ${group.faces.map((f) => f.style).join(' · ')}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: _muted,
+                          fontSize: 11,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  expanded
+                      ? Icons.expand_less_rounded
+                      : Icons.expand_more_rounded,
+                  color: controller.skin.color,
+                  size: 22,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _FontCard extends StatelessWidget {
+  const _FontCard({
+    required this.controller,
+    required this.face,
+    required this.onTap,
+    this.selected = false,
+  });
+  final FontController controller;
+  final FontFace face;
+  final VoidCallback onTap;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final favorite = controller.favorites.contains(face.id);
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        key: ValueKey('font:${face.id}'),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 16, 10, 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: selected ? controller.skin.color : _line),
+          ),
+          child: Row(
+            children: [
+              ExcludeSemantics(
+                child: SizedBox(
+                  width: 56,
+                  height: 60,
+                  child: FontPreview(
+                    service: controller.service,
+                    face: face,
+                    text: 'Ag',
+                    size: 34,
+                    color: _ink,
+                    thumbnail: true,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      face.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      face.style,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _muted,
+                        fontSize: 11,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                key: ValueKey('favorite:${face.id}'),
+                tooltip: favorite ? '즐겨찾기 해제' : '즐겨찾기 추가',
+                onPressed: () => controller.toggleFavorite(face.id),
+                icon: Icon(
+                  favorite
+                      ? Icons.bookmark_rounded
+                      : Icons.bookmark_border_rounded,
+                  color: favorite ? controller.skin.color : _muted,
+                  size: 21,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

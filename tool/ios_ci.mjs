@@ -8,7 +8,7 @@ import {createPrivateKey, sign, randomBytes, createHash} from 'node:crypto';
 if (process.platform !== 'darwin') throw Error('macOS is required');
 if (process.env.NODE_OPTIONS || process.env.NODE_DEBUG || process.env.NODE_V8_COVERAGE || process.execArgv.some(v=>v.includes('inspect'))) throw Error('Private runtime required');
 const team='V6445K474Q', bundle='app.toolmoa.fontv', version='2.0.0';
-const build=process.env.FONTV_BUILD_NUMBER || '2';
+const build=process.env.FONTV_BUILD_NUMBER || '4';
 if (!/^\d+$/.test(build)) throw Error('Invalid build number');
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'fontv-sign-'));
 fs.chmodSync(temp,0o700);
@@ -106,6 +106,16 @@ plistlib.dump(dict(method='app-store-connect',destination='export',signingStyle=
   for(const [cmd,args] of [['flutter',['pub','get']],['flutter',['analyze']],['flutter',['test']],['flutter',['build','ipa','--release',`--build-name=${version}`,`--build-number=${build}`,`--export-options-plist=${exportOptions}`]]]){
     try{console.log(run(cmd,args));}catch(e){console.error(e.stdout?.toString(),e.stderr?.toString());throw Error(`${cmd} ${args[0]} failed`);}
   }
+  run('python3',['-c',`import plistlib,pathlib,sys
+root=pathlib.Path('build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app')
+p=plistlib.load(open(root/'Info.plist','rb'))
+def version(s): return tuple((list(map(int,s.split('.')))+[0,0,0])[:3])
+assert version(p['MinimumOSVersion'])==version('15.0'), 'Unexpected app deployment target'
+assert p['CFBundleIdentifier']==sys.argv[1] and p['CFBundleVersion']==sys.argv[2]
+for f in root.glob('Frameworks/*.framework/Info.plist'):
+ v=plistlib.load(open(f,'rb')).get('MinimumOSVersion')
+ assert v is None or version(v)<=version(p['MinimumOSVersion']), 'Framework requires a newer target: '+str(f)
+print('Verified iOS 15.0 deployment target and embedded framework compatibility.')`,bundle,build]);
   const ipas=fs.readdirSync('build/ios/ipa').filter(f=>f.endsWith('.ipa'));if(ipas.length!==1)throw Error('Expected one IPA');
   const ipa=path.resolve('build/ios/ipa',ipas[0]);
   const apiDir=path.join(temp,'api');fs.mkdirSync(apiDir,{mode:0o700});fs.writeFileSync(path.join(apiDir,`AuthKey_${keyId}.p8`),p8,{mode:0o600});

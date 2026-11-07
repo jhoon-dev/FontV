@@ -58,6 +58,8 @@ void main() {
       FontVApp(controller: FontController(service: TestFonts())),
     );
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('family:Alpha')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('font:a')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('preview-canvas')), findsOneWidget);
@@ -79,7 +81,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('font:a')),
+      find.byKey(const ValueKey('family:Alpha')),
       80,
       scrollable: find
           .descendant(
@@ -89,6 +91,18 @@ void main() {
           .first,
     );
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('family:Alpha')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('font:a')),
+      80,
+      scrollable: find
+          .descendant(
+            of: find.byType(CustomScrollView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.byKey(const ValueKey('font:a')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

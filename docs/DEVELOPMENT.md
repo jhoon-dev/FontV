@@ -20,7 +20,7 @@
 
 - Flutter 3.44.2 / Dart 3.12.2 (잠금 파일 포함)
 - Android: API 29(Android 10) 이상. Android SDK, JDK 21 이상 필요.
-- iOS: iOS 13 이상. 빌드·시뮬레이터·서명에는 macOS와 호환되는 Xcode 필요.
+- iOS: iOS 15 이상. 빌드·시뮬레이터·서명에는 macOS와 호환되는 Xcode 필요.
 - 웹은 화면 검토용 데모이며, 기본 서체의 Regular·Bold·Italic 세 가지 데모 스타일만 제공한다. 웹의 폰트 목록을 모바일 시스템 폰트 목록으로 간주하면 안 된다.
 
 ```sh
@@ -39,6 +39,8 @@ flutter build apk --debug
 |---|---|
 | `lib/src/app.dart` | 폰트 목록, 상세 미리보기, 설정과 반응형 레이아웃 |
 | `lib/src/controller.dart` | 검색, 즐겨찾기, 설정, 저장 순서 관리 |
+| `lib/src/font_catalog.dart` | 패밀리 접기·펼치기, 전체 펼치기, 오른쪽 문자 인덱스 탭·드래그와 빠른 스크롤 |
+| `lib/src/font_catalog_model.dart` | 검색·즐겨찾기로 필터링된 서체의 패밀리 묶음, 영문·한글 초성·기타 문자 인덱스 |
 | `lib/src/font_service.dart` | 플랫폼 채널, 폰트 모델, 중복 요청 병합과 12MB LRU 캐시 |
 | `lib/src/font_preview.dart` | 비동기 렌더링, 변경 지연과 오래된 응답 배제 |
 | `android/app/src/main/kotlin/app/toolmoa/fontv/MainActivity.kt` | Android 폰트 목록, OpenType 이름 읽기, 네이티브 PNG 렌더링 |
@@ -47,6 +49,8 @@ flutter build apk --debug
 채널 이름은 `app.toolmoa.fontv/fonts`. `getFonts`는 `{id, name, family, style}` 목록을 반환한다. `renderPreview`는 fontId, text, size, color(ARGB), width, height, scale을 받고 투명 PNG 바이트를 반환한다. 텍스트는 1,000자, 논리 크기는 각 변 1,600, 배율은 최대 3으로 제한한다. 네이티브 렌더링은 직렬 작업 큐에서 처리하고 채널 응답은 메인 스레드로 돌려준다.
 
 iOS는 `UIFont.familyNames`와 `fontNames(forFamilyName:)`를 사용한다. Android는 공개 API `SystemFonts.getAvailableFonts()`를 사용하고 각 `Font`의 TTC 인덱스와 variation axes를 유지한다. 같은 TTC 파일의 다른 글꼴이 모두 첫 번째 글꼴로 표시되는 오류를 피하기 위해 OS에서 직접 그린다. 지원하지 않는 문자는 OS fallback이 사용된다. 긴 문장은 고정 미리보기 영역에서 잘릴 수 있다. 운영체제·제조사별로 카탈로그가 다르며 다른 앱의 비공개 폰트까지 열람하지 않는다.
+
+목록은 같은 패밀리의 Regular·Bold·Italic 등을 기본적으로 접어서 보여준다. 검색 시에는 일치하는 스타일만 묶고 자동으로 펼치며, 즐겨찾기에서는 저장한 스타일만 포함한다. 오른쪽 인덱스는 현재 목록에 존재하는 문자만 보여주며 탭과 세로 드래그를 지원한다. 묶음 펼침과 글자 확대에 맞춰 행 위치를 다시 계산해 중간 폰트 미리보기를 모두 만들지 않고 목표 문자로 이동한다. 아이콘은 기존 분홍 배경에 같은 글자 크기의 `font`와 `V`를 배치하며 `tool/generate_icons.ps1`에서 iOS·Android·웹 크기를 함께 생성한다.
 
 ## iOS 신규 배포
 
