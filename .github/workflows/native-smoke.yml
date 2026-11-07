@@ -7,8 +7,8 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 35
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: '3.44.2'
           cache: true
@@ -32,7 +32,7 @@ jobs:
         run: |
           mkdir -p artifacts/screenshots
           xcrun simctl io "$SIMULATOR_ID" screenshot artifacts/screenshots/ios-native-test-ad.png
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: FontV-native-ad-smoke
