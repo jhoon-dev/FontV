@@ -60,11 +60,11 @@ Mac에서 다음 작업이 필요하다.
 4. 고유 빌드 번호와 최신 스토어 요구사항을 확인하고 Archive/TestFlight로 검증한다.
 5. 개인정보·연령 등급·지원 URL·신규 스크린샷과 버전 설명을 준비한 뒤 심사에 제출한다.
 
-Windows에서는 Xcode/Swift iOS 컴파일 및 실제 iPhone 실행을 검증할 수 없다. 서명 빌드는 PM Canvas GitHub 저장소의 `Font V TestFlight` 수동 워크플로와 기존 `desktop-mac-store` 보호 환경을 재사용한다. 기존 Apple Distribution 인증서와 App Store Connect API 키를 사용하고, 프로비저닝 프로필은 Font V App ID용으로 별도 생성·검증한다. 현재 API 키는 프로필 생성 POST 권한이 없어 Apple Developer 화면에서 `Font V ToolMoa App Store`를 발급했다. 프로필 만료·인증서 교체 시 같은 방식으로 새 프로필을 준비한다. `tool/ios_ci.mjs`가 분석·테스트·IPA 빌드·Apple 검증 및 업로드·내부 그룹 배포를 수행한다. 프로덕션 심사는 제출하지 않는다.
+Windows에서는 Xcode/Swift iOS 컴파일 및 실제 iPhone 실행을 검증할 수 없다. 현재 소스와 CI는 공개 GitHub 저장소 [jhoon-dev/fontv](https://github.com/jhoon-dev/fontv)에 있다. `iOS TestFlight` 수동 워크플로는 GitHub macOS Runner와 Font V 전용 `apple-testflight` 보호 환경을 사용한다. 기존 Apple Distribution 인증서와 App Store Connect API 키를 암호화 전송으로 이 환경에 이전했다. 프로비저닝 프로필은 Font V App ID용으로 별도 검증한다. 현재 API 키는 프로필 생성 POST 권한이 없어 Apple Developer 화면에서 `Font V ToolMoa App Store`를 발급했다. 프로필 만료·인증서 교체 시 같은 방식으로 새 프로필을 준비한다. `tool/ios_ci.mjs`가 분석·테스트·IPA 빌드·Apple 검증 및 업로드·내부 그룹 배포를 수행한다. 프로덕션 심사는 제출하지 않는다.
 
-PM Canvas는 공개 저장소이므로 Font V 소스를 평문으로 올리지 않는다. 먼저 Font V 변경을 GitLab에 커밋한 뒤 `node tool/package_ios_ci.mjs <PMCanvas>/.github/ci/fontv-source.enc.json`으로 정확한 Git 커밋의 ZIP을 AES-256-GCM으로 암호화한다. `.local/ci/source-key.txt`는 Git에 넣지 않고 보호 환경의 `FONTV_SOURCE_KEY`로만 전달한다. PM Canvas에는 암호화 파일 변경 PR을 만들고 필수 검사를 통과해 병합한 뒤, 정확한 `source_commit`과 고유 `build_number`로 실행한다. 빌드 소스·임시 키체인·프로필은 실행 후 지운다.
+GitHub Actions에서 `iOS TestFlight` → `Run workflow`를 선택하고 `main`과 고유한 `build_number`를 지정한다. `distribute_only`는 이미 업로드한 빌드의 처리 상태와 내부 그룹 연결만 확인할 때 사용한다. 새 빌드에는 이 옵션을 끈다. 보호 환경은 `main`에서만 사용할 수 있으며, 서명 비밀번호·P12·P8은 소스에 넣지 않는다. 임시 키체인과 프로비저닝 프로필은 빌드 후 지운다.
 
-공개 Actions에는 암호화된 진단과 비밀값 없는 상태 JSON만 남긴다. `FontV-encrypted-result` 아티팩트를 다운로드한 뒤 Font V 작업 폴더에서 `node tool/read_ci_diagnostics.mjs <다운로드 경로>/diagnostics.enc.json`으로 확인한다. 복호화한 로그는 로컬에만 보관하고 공개 이슈나 PR에 그대로 붙이지 않는다. 실행 결과와 실기기 검증 여부는 `VERIFICATION.md`를 따른다.
+공개 Actions에는 `tool/run_ios_ci.mjs`가 암호화한 진단과 비밀값 없는 상태 JSON만 남긴다. `FontV-iOS-encrypted-result` 아티팩트를 다운로드한 뒤 Font V 작업 폴더에서 `node tool/read_ci_diagnostics.mjs <다운로드 경로>/diagnostics.enc.json`으로 확인한다. 로컬 진단 키 `.local/ci/source-key.txt`와 보호 환경의 `FONTV_DIAGNOSTICS_KEY`는 같은 값이며 Git에 포함하지 않는다. 복호화한 로그는 로컬에만 보관하고 공개 이슈나 PR에 그대로 붙이지 않는다. 실행 결과와 실기기 검증 여부는 `VERIFICATION.md`를 따른다.
 
 ## Android 배포
 
@@ -72,9 +72,11 @@ PM Canvas는 공개 저장소이므로 Font V 소스를 평문으로 올리지 �
 
 개발 APK는 디버그 서명이다. 출시용은 `android/key.properties.example`을 `android/key.properties`로 복사하고 업로드 키를 로컬에서 지정한 뒤 `flutter build appbundle --release`로 만든다. 키가 없으면 출시 빌드는 서명하지 않으며 디버그 키로 대체하지 않는다. 키 파일·비밀번호·실제 key.properties는 Git에 넣지 않는다.
 
+GitHub의 `Android internal bundle` 수동 워크플로는 `android-internal` 보호 환경의 업로드 키로 AAB를 서명한다. 고유한 `build_number`를 지정하면 분석·테스트·서명 검증 후 `FontV-Play-internal-AAB` 아티팩트를 만든다. Google Play 업로드는 Play Console 내부 테스트 트랙에서 수행하며, 현재 자동 업로드용 서비스 계정은 등록하지 않았다. Runner의 키 파일과 key.properties는 작업 후 지운다.
+
 ## 소스 보관
 
-앱스토어 등록에 소스가 백업되는 것은 아니다. 프로젝트 전체와 잠금 파일은 연결된 비공개 GitLab 저장소에 커밋·푸시하고, 별도로 백업한다. iOS 서명 자료, Android 업로드 키와 CI 소스 암호화 키는 안전한 별도 위치에 백업한다. 이 자료를 소스 ZIP이나 Git에 포함하지 않는다.
+앱스토어 등록에 소스가 백업되는 것은 아니다. 프로젝트 전체와 잠금 파일은 GitHub `jhoon-dev/fontv`에 커밋·푸시하고, 별도로 백업한다. GitLab 프로젝트는 Git 이력 이전과 GitHub 커밋 일치 확인 후 사용자 승인으로 영구 삭제했다. iOS 서명 자료, Android 업로드 키와 CI 진단 암호화 키는 안전한 별도 위치에 백업한다. 이 자료를 소스 ZIP이나 Git에 포함하지 않는다.
 
 ## API 근거
 

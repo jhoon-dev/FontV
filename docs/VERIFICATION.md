@@ -49,3 +49,22 @@
 - Android 업로드 키와 비밀번호는 `.local/signing/` 및 무시된 `android/key.properties`에만 보관했다. 안전한 별도 백업이 필요하다.
 - Apple Developer에 명시적 App ID를 등록하고 App Store Connect에 `Font V - ToolMoa`(Apple ID `6831850547`)를 새로 만들었다. `ToolMoa Internal` 그룹과 현재 계정 테스터를 등록했다. 기존 Font V는 아직 제거하지 않았다.
 - PM Canvas의 보호된 macOS CI 재사용을 위한 PR: https://github.com/jhoon-dev/PMCanvas/pull/48 . 공개 저장소에는 암호화된 소스만 전달하며 빌드 진단도 암호화한다. 인증서와 API 키는 기존 보호 환경을 벗어나지 않는다. iOS 빌드·업로드 결과는 아래에 별도로 기록한다.
+
+## GitHub 이전 및 iOS 내부 배포 결과
+
+- 사용자 요청에 따라 소스와 전체 Git 이력을 공개 저장소 https://github.com/jhoon-dev/fontv 로 이전했다. 이전 전후 main 커밋 일치를 확인했고 Git 이력에 실제 서명 키 파일·key.properties·개인 키 본문이 포함되지 않았음을 검사했다. 현재 로컬 origin은 GitHub만 가리킨다.
+- GitLab `toolmoa/fontv`(프로젝트 ID 18)는 GitHub 이전 검증 후 사용자의 실행 직전 승인으로 즉시 영구 삭제했다. 삭제 대기 목록에서 사라진 것을 확인했다. 이슈·MR·포크는 각각 0개였다.
+- 첫 iOS 서명 빌드는 공유 macOS CI에서 분석과 테스트 9개, Xcode Archive, IPA 내보내기, Apple 업로드 검증 및 실제 업로드까지 성공했다. 업로드 뒤 상태 조회에서 발생한 일시적 EPIPE 연결 오류는 후속 CI에서 연결 재사용 방지와 GET 재시도로 처리했다.
+- TestFlight `2.0.0 (2)`는 `ToolMoa Internal` 그룹(테스터 1명)에 연결됐고 초대 발송을 확인했다. 새 Font V 저장소의 전용 CI에서도 기존 빌드를 조회해 `IN_BETA_TESTING` 상태를 확인했다: https://github.com/jhoon-dev/fontv/actions/runs/42333273054 .
+- Apple Distribution P12·비밀번호와 App Store Connect API 키는 암호화 전송으로 Font V 전용 `apple-testflight` 환경에 이전했다. Android 업로드 키는 `android-internal` 환경에 저장했다. 두 환경은 main 브랜치에서만 사용할 수 있다. 공개 소스·로그·아티팩트에 평문 서명 자료를 넣지 않았다.
+- 일회성 암호화 전송 아티팩트와 PM Canvas의 임시 Font V 전송 키는 제거했고, 공유 저장소에 추가했던 Font V 전용 워크플로는 비활성화했다. 이후 빌드는 Font V 저장소에서 직접 실행한다.
+- GitHub의 자동 검증에서 Android 디버그 빌드, iOS 시뮬레이터 빌드가 통과했다. 새 `Android internal bundle` 작업도 업로드 키로 AAB 빌드 및 jarsigner 검증에 성공했다: https://github.com/jhoon-dev/fontv/actions/runs/42333083450 .
+- iPhone/iPad와 Android 실기기에서의 최종 사용성 확인은 내부 테스트 참가자가 수행해야 한다. 스토어 프로덕션 심사는 제출하지 않았다.
+
+## 전용 CI 빌드 3 배포
+
+- iOS `2.0.0 (3)`는 Font V 자체 macOS 워크플로에서 분석·테스트·서명 IPA·Apple 업로드와 내부 그룹 배포까지 통과했다: https://github.com/jhoon-dev/fontv/actions/runs/42333299950 . 결과 JSON의 상태는 `IN_BETA_TESTING`이며 빌드 ID는 `9d852f25-a5d6-4923-a69b-2a2c9e298e89`다. 테스트 안내도 등록했다.
+- Android `2.0.0 (3)`은 Font V 자체 Linux 워크플로에서 AAB 빌드와 JAR 서명 검증에 성공했다. 서명 인증서가 최초 Play 업로드 키와 동일한지도 다운로드한 PKCS#7 서명에서 대조했다.
+- Play Console에서 AAB 3을 수락했고 기존 내부 테스터 목록을 유지한 채 새 버전을 게시했다. 트랙은 활성 상태이며 `최신 출시 버전: 3 (2.0.0)` 및 `내부 테스터에게 제공됨`을 확인했다. 참여 링크는 이전과 같다.
+- CI AAB SHA-256: `c1799883440866c2a78dcbc45a7adad8555baf80fe23081c6d7feb4b02ad1197`.
+- 서명 자료와 복호화 키를 제외한 소스 ZIP은 `tool/archive_source.ps1`로 재생성한다. 현재 키는 GitHub 보호 환경과 무시된 로컬 보관 위치에만 존재한다.
