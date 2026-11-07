@@ -826,23 +826,6 @@ class SettingsPanel extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(
-                  Icons.favorite_rounded,
-                  size: 12,
-                  color: controller.skin.color,
-                ),
-                const SizedBox(width: 7),
-                const Flexible(
-                  child: Text(
-                    'Made with care by ToolMoa.',
-                    style: TextStyle(fontSize: 12, height: 1.5, color: _text),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
             const Text(
               'Developed by jhoon-dev',
               style: TextStyle(fontSize: 11, height: 1.5, color: _muted),

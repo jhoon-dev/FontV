@@ -2,7 +2,7 @@
 
 ## 앱 표기
 
-설정 화면에는 **ToolMoa**, **Made with care by ToolMoa.**, **Developed by jhoon-dev**를 구분해 표시한다. 별도 역할 라벨이나 이전 개발자명·도메인은 노출하지 않는다. iOS·Android 앱 ID는 모두 **`app.toolmoa.fontv`**이고, 기존 앱 업데이트가 아닌 새 앱 등록으로 배포한다.
+설정 화면에는 **ToolMoa**와 **Developed by jhoon-dev**를 구분해 표시한다. 별도 역할 라벨이나 이전 개발자명·도메인은 노출하지 않는다. iOS·Android 앱 ID는 모두 **`app.toolmoa.fontv`**이고, 기존 앱 업데이트가 아닌 새 앱 등록으로 배포한다.
 
 ## 제품 범위
 
