@@ -106,16 +106,7 @@ plistlib.dump(dict(method='app-store-connect',destination='export',signingStyle=
   for(const [cmd,args] of [['flutter',['pub','get']],['flutter',['analyze']],['flutter',['test']],['flutter',['build','ipa','--release',`--build-name=${version}`,`--build-number=${build}`,`--export-options-plist=${exportOptions}`]]]){
     try{console.log(run(cmd,args));}catch(e){console.error(e.stdout?.toString(),e.stderr?.toString());throw Error(`${cmd} ${args[0]} failed`);}
   }
-  run('python3',['-c',`import plistlib,pathlib,sys
-root=pathlib.Path('build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app')
-p=plistlib.load(open(root/'Info.plist','rb'))
-def version(s): return tuple((list(map(int,s.split('.')))+[0,0,0])[:3])
-assert version(p['MinimumOSVersion'])==version('15.0'), 'Unexpected app deployment target'
-assert p['CFBundleIdentifier']==sys.argv[1] and p['CFBundleVersion']==sys.argv[2]
-for f in root.glob('Frameworks/*.framework/Info.plist'):
- v=plistlib.load(open(f,'rb')).get('MinimumOSVersion')
- assert v is None or version(v)<=version(p['MinimumOSVersion']), 'Framework requires a newer target: '+str(f)
-print('Verified iOS 15.0 deployment target and embedded framework compatibility.')`,bundle,build]);
+  console.log(run('python3',['tool/verify_ios_archive.py',bundle,build]));
   const ipas=fs.readdirSync('build/ios/ipa').filter(f=>f.endsWith('.ipa'));if(ipas.length!==1)throw Error('Expected one IPA');
   const ipa=path.resolve('build/ios/ipa',ipas[0]);
   const apiDir=path.join(temp,'api');fs.mkdirSync(apiDir,{mode:0o700});fs.writeFileSync(path.join(apiDir,`AuthKey_${keyId}.p8`),p8,{mode:0o600});
