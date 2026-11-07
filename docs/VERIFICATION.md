@@ -27,4 +27,16 @@
 - `artifacts/screenshots/font-v-android-catalog.png`: 실제 시스템 폰트 목록 캡처
 - `artifacts/screenshots/font-v-android-preview.png`: 네이티브 폰트 미리보기 캡처
 
-APK SHA-256: `323FC1CDE012DCF55AB962D2BE4E8ED34B997CEF22A05C8EFC8AED1518138420`
+초기 APK(2026-11-06) SHA-256: `323FC1CDE012DCF55AB962D2BE4E8ED34B997CEF22A05C8EFC8AED1518138420`
+
+## 2026-11-07 변경 검증
+
+- 화면·웹 메타데이터·문서의 표시를 ToolMoa / jhoon-dev로 정리했다. 설정 화면에는 `Made with care by ToolMoa.`와 `Developed by jhoon-dev`를 구분해 표시한다.
+- iOS 번들 ID, Android applicationId와 namespace를 `app.toolmoa.fontv`로 변경했다. Android 진입점 경로와 Dart·Kotlin·Swift 플랫폼 채널도 함께 변경했다.
+- 정적 검사와 기존 테스트 9개가 통과했다. 웹 재빌드와 새 ID의 Android ARM64 APK 빌드가 성공했다.
+- APK의 패키지 이름(`app.toolmoa.fontv`), 표시 이름(`Font V`), 최소 API 29, ARM64 라이브러리와 디버그 서명을 확인했다.
+- 모바일 크기의 브라우저에서 새 표기를 시각적으로 확인했다.
+- 새 ID로 변경한 뒤의 Android 에뮬레이터 재설치·통합 테스트와 iOS Xcode 빌드는 아직 하지 않았다. 앞 절의 통합 테스트는 초기 앱 ID에서의 결과다.
+- 기존 스토어 앱 제거와 새 앱 등록·출시는 아직 실행하지 않았다. 새 ID는 기존 iOS 앱 업데이트에 사용할 수 없다.
+
+현재 APK SHA-256: `BE967BF95CB37E9C00CF9E373A4486A933E2BD1E34C66D8448E5398AB44354CF`

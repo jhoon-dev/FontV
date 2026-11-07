@@ -1,11 +1,11 @@
 {
-    "name": "Font V",
+    "name": "Font V · ToolMoa",
     "short_name": "Font V",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#D9437B",
     "theme_color": "#D9437B",
-    "description": "Explore the typography on your device.",
+    "description": "Font V by ToolMoa. Developed by jhoon-dev.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

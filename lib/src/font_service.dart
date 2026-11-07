@@ -57,7 +57,7 @@ class PreviewRequest {
 }
 
 class FontService {
-  static const channel = MethodChannel('com.isdow.fontv/fonts');
+  static const channel = MethodChannel('app.toolmoa.fontv/fonts');
   final _cache = <String, Uint8List>{};
   final _pending = <String, Future<Uint8List>>{};
   int _cacheBytes = 0;

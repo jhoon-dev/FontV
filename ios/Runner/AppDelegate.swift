@@ -4,7 +4,7 @@ import UIKit
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private var fontChannel: FlutterMethodChannel?
-  private let fontWorker = DispatchQueue(label: "com.isdow.fontv.renderer", qos: .userInitiated)
+  private let fontWorker = DispatchQueue(label: "app.toolmoa.fontv.renderer", qos: .userInitiated)
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -14,7 +14,7 @@ import UIKit
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
-    let channel = FlutterMethodChannel(name: "com.isdow.fontv/fonts",
+    let channel = FlutterMethodChannel(name: "app.toolmoa.fontv/fonts",
                                       binaryMessenger: engineBridge.applicationRegistrar.messenger())
     fontChannel = channel
     channel.setMethodCallHandler { [weak self] call, result in

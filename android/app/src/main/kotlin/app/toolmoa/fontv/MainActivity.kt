@@ -1,4 +1,4 @@
-package com.isdow.apps.font_v
+package app.toolmoa.fontv
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -31,7 +31,7 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.isdow.fontv/fonts")
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "app.toolmoa.fontv/fonts")
             .setMethodCallHandler { call, result ->
                 // Serial background work bounds bitmap memory and keeps scrolling off the UI thread.
                 worker.execute {

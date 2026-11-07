@@ -1,5 +1,5 @@
 name: font_v
-description: "Explore the typography on your device."
+description: "Font V by ToolMoa. An offline font explorer developed by jhoon-dev."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

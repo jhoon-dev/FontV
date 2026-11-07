@@ -13,7 +13,7 @@ if (releasePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.isdow.apps.font_v"
+    namespace = "app.toolmoa.fontv"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -23,8 +23,8 @@ android {
     }
 
     defaultConfig {
-        // Matches the existing iOS app identity; this Android listing is new.
-        applicationId = "com.isdow.apps.FontViewer"
+        // New app identity, shared with the new iOS listing.
+        applicationId = "app.toolmoa.fontv"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 29

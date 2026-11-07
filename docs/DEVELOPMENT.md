@@ -1,5 +1,9 @@
 # Font V 개발 안내
 
+## 앱 표기
+
+설정 화면에는 **ToolMoa**, **Made with care by ToolMoa.**, **Developed by jhoon-dev**를 구분해 표시한다. 별도 역할 라벨이나 이전 개발자명·도메인은 노출하지 않는다. iOS·Android 앱 ID는 모두 **`app.toolmoa.fontv`**이고, 기존 앱 업데이트가 아닌 새 앱 등록으로 배포한다.
+
 ## 제품 범위
 
 기존 iOS Font V(Apple ID `899822294`)의 설명과 등록 스크린샷을 참고해 새로 구현한 Flutter 앱이다. 원본 소스를 복구한 프로젝트가 아니다. iOS와 Android에서 각 기기에 설치된 시스템 폰트를 탐색한다. 폰트 설치, 삭제, 기기 전체의 글꼴 변경은 하지 않는다.
@@ -37,21 +41,21 @@ flutter build apk --debug
 | `lib/src/controller.dart` | 검색, 즐겨찾기, 설정, 저장 순서 관리 |
 | `lib/src/font_service.dart` | 플랫폼 채널, 폰트 모델, 중복 요청 병합과 12MB LRU 캐시 |
 | `lib/src/font_preview.dart` | 비동기 렌더링, 변경 지연과 오래된 응답 배제 |
-| `android/app/src/main/kotlin/com/isdow/apps/font_v/MainActivity.kt` | Android 폰트 목록, OpenType 이름 읽기, 네이티브 PNG 렌더링 |
+| `android/app/src/main/kotlin/app/toolmoa/fontv/MainActivity.kt` | Android 폰트 목록, OpenType 이름 읽기, 네이티브 PNG 렌더링 |
 | `ios/Runner/AppDelegate.swift` | UIKit 폰트 목록, 네이티브 PNG 렌더링 |
 
-채널 이름은 `com.isdow.fontv/fonts`. `getFonts`는 `{id, name, family, style}` 목록을 반환한다. `renderPreview`는 fontId, text, size, color(ARGB), width, height, scale을 받고 투명 PNG 바이트를 반환한다. 텍스트는 1,000자, 논리 크기는 각 변 1,600, 배율은 최대 3으로 제한한다. 네이티브 렌더링은 직렬 작업 큐에서 처리하고 채널 응답은 메인 스레드로 돌려준다.
+채널 이름은 `app.toolmoa.fontv/fonts`. `getFonts`는 `{id, name, family, style}` 목록을 반환한다. `renderPreview`는 fontId, text, size, color(ARGB), width, height, scale을 받고 투명 PNG 바이트를 반환한다. 텍스트는 1,000자, 논리 크기는 각 변 1,600, 배율은 최대 3으로 제한한다. 네이티브 렌더링은 직렬 작업 큐에서 처리하고 채널 응답은 메인 스레드로 돌려준다.
 
 iOS는 `UIFont.familyNames`와 `fontNames(forFamilyName:)`를 사용한다. Android는 공개 API `SystemFonts.getAvailableFonts()`를 사용하고 각 `Font`의 TTC 인덱스와 variation axes를 유지한다. 같은 TTC 파일의 다른 글꼴이 모두 첫 번째 글꼴로 표시되는 오류를 피하기 위해 OS에서 직접 그린다. 지원하지 않는 문자는 OS fallback이 사용된다. 긴 문장은 고정 미리보기 영역에서 잘릴 수 있다. 운영체제·제조사별로 카탈로그가 다르며 다른 앱의 비공개 폰트까지 열람하지 않는다.
 
-## iOS 업데이트
+## iOS 신규 배포
 
-번들 ID는 기존 등록과 같은 **`com.isdow.apps.FontViewer`** 로 설정했다. 앱 버전은 2.0.0, 빌드 번호는 2다. 실제 업로드 전에는 App Store Connect의 기존 빌드 이력에 맞춰 중복되지 않는 번호를 선택한다. 현재 남아 있는 1.1 초안의 버전과 출시할 버전도 맞춰야 한다.
+번들 ID는 **`app.toolmoa.fontv`**다. 앱 버전은 2.0.0, 빌드 번호는 2다. 기존 Font V와 다른 앱 ID이므로 새 App ID와 App Store Connect 앱 등록이 필요하며, 이전 앱의 1.1 초안을 사용하지 않는다. 기존 앱의 판매 중단이나 기록 제거는 이 코드 변경만으로 실행되지 않는다.
 
 Mac에서 다음 작업이 필요하다.
 
 1. `flutter pub get`, `flutter build ios --simulator --debug`로 Swift 컴파일을 확인한다.
-2. `ios/Runner.xcworkspace`를 Xcode에서 열어 기존 앱을 소유한 Development Team을 선택한다.
+2. `ios/Runner.xcworkspace`를 Xcode에서 열어 배포할 Development Team을 선택하고 `app.toolmoa.fontv`를 새 앱으로 등록한다.
 3. iPhone/iPad에서 폰트 목록, 미리보기, 키보드, 회전, 설정 복원을 확인한다.
 4. 고유 빌드 번호와 최신 스토어 요구사항을 확인하고 Archive/TestFlight로 검증한다.
 5. 개인정보·연령 등급·지원 URL·신규 스크린샷과 버전 설명을 준비한 뒤 심사에 제출한다.
@@ -60,7 +64,7 @@ Windows에서는 Xcode/Swift iOS 컴파일 및 실제 iPhone 실행을 검증할
 
 ## Android 배포
 
-패키지 ID는 `com.isdow.apps.FontViewer`다. 최초 Play Console 등록 전에 최종 확정한다. iOS 번들 ID와 같은 문자열이지만 플랫폼별 등록과 서명은 별개다.
+패키지 ID는 `app.toolmoa.fontv`다. Play Console에서 새 앱으로 등록한다. iOS 번들 ID와 같은 문자열이지만 플랫폼별 등록과 서명은 별개다.
 
 개발 APK는 디버그 서명이다. 출시용은 `android/key.properties.example`을 `android/key.properties`로 복사하고 업로드 키를 로컬에서 지정한 뒤 `flutter build appbundle --release`로 만든다. 키가 없으면 출시 빌드는 서명하지 않으며 디버그 키로 대체하지 않는다. 키 파일·비밀번호·실제 key.properties는 Git에 넣지 않는다.
 

@@ -29,7 +29,7 @@ class _FontVAppState extends State<FontVApp> {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: widget.controller,
     builder: (context, _) => MaterialApp(
-      title: 'Font V',
+      title: 'Font V · ToolMoa',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -121,7 +121,7 @@ class _FontHomeState extends State<FontHome> {
             const SizedBox(width: 14),
             const Flexible(
               child: Text(
-                'TYPE EXPLORER',
+                'TOOLMOA',
                 maxLines: 1,
                 overflow: TextOverflow.fade,
                 softWrap: false,
@@ -792,13 +792,62 @@ class SettingsPanel extends StatelessWidget {
         style: TextStyle(fontSize: 12, height: 1.9, color: _muted),
       ),
       const SizedBox(height: 30),
-      Text(
-        'FONT V  /  2.0.0\nMade with care by isdow.',
-        style: TextStyle(
-          fontSize: 10,
-          letterSpacing: 1,
-          height: 1.9,
-          color: controller.skin.color,
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: _line),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'ToolMoa',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -.9,
+                    ),
+                  ),
+                ),
+                Text(
+                  'FONT V / 2.0.0',
+                  style: TextStyle(
+                    fontSize: 9,
+                    letterSpacing: 1.2,
+                    color: controller.skin.color,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(
+                  Icons.favorite_rounded,
+                  size: 12,
+                  color: controller.skin.color,
+                ),
+                const SizedBox(width: 7),
+                const Flexible(
+                  child: Text(
+                    'Made with care by ToolMoa.',
+                    style: TextStyle(fontSize: 12, height: 1.5, color: _text),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Developed by jhoon-dev',
+              style: TextStyle(fontSize: 11, height: 1.5, color: _muted),
+            ),
+          ],
         ),
       ),
       if (controller.service.isDemo)
