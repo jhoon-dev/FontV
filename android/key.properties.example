@@ -1,0 +1,6 @@
+# Copy to key.properties and supply your existing upload key before store release.
+# Use forward slashes for paths on Windows. Never commit the real file or key.
+storeFile=C:/private/font-v-upload.jks
+storePassword=REPLACE_LOCALLY
+keyAlias=upload
+keyPassword=REPLACE_LOCALLY
