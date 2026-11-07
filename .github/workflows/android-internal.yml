@@ -1,0 +1,57 @@
+name: Android internal bundle
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: Unique Android version code
+        default: '3'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: fontv-android-internal
+  cancel-in-progress: false
+jobs:
+  signed-bundle:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: android-internal
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: '3.44.2'
+          channel: stable
+      - name: Configure temporary upload signing
+        run: node tool/android_ci_signing.mjs
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      - run: flutter pub get && flutter analyze && flutter test
+      - name: Build signed AAB
+        env:
+          FONTV_BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          [[ "$FONTV_BUILD_NUMBER" =~ ^[0-9]+$ ]] || exit 1
+          flutter build appbundle --release --build-name=2.0.0 --build-number="$FONTV_BUILD_NUMBER"
+          jarsigner -verify build/app/outputs/bundle/release/app-release.aab
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: FontV-Play-internal-AAB
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 7
+          if-no-files-found: error
+      - name: Remove temporary signing files
+        if: always()
+        run: node tool/android_ci_signing.mjs --cleanup
