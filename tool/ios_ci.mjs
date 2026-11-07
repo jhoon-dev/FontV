@@ -8,7 +8,7 @@ import {createPrivateKey, sign, randomBytes, createHash} from 'node:crypto';
 if (process.platform !== 'darwin') throw Error('macOS is required');
 if (process.env.NODE_OPTIONS || process.env.NODE_DEBUG || process.env.NODE_V8_COVERAGE || process.execArgv.some(v=>v.includes('inspect'))) throw Error('Private runtime required');
 const team='V6445K474Q', bundle='app.toolmoa.fontv', version='2.0.0';
-const build=process.env.FONTV_BUILD_NUMBER || '4';
+const build=process.env.FONTV_BUILD_NUMBER || '5';
 if (!/^\d+$/.test(build)) throw Error('Invalid build number');
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'fontv-sign-'));
 fs.chmodSync(temp,0o700);
