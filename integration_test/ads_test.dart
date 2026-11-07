@@ -92,12 +92,16 @@ void main() {
       }
       debugPrint('Font V smoke: native ad rendered');
       if (defaultTargetPlatform == TargetPlatform.android) {
-        await binding.convertFlutterSurfaceToImage();
-        await tester.pump();
+        // Converting Flutter's surface hides texture-composed native video.
+        // The CI host captures adb's screen while this real-time window is open.
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(seconds: 5)),
+        );
+      } else {
+        await binding.takeScreenshot(
+          'font-v-${defaultTargetPlatform.name}-native-video',
+        );
       }
-      await binding.takeScreenshot(
-        'font-v-${defaultTargetPlatform.name}-native-video',
-      );
       await tester.pump(const Duration(seconds: 5));
     },
     timeout: const Timeout(Duration(minutes: 3)),
