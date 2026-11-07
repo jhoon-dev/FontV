@@ -13,7 +13,7 @@ Browse real device fonts grouped into collapsible families, jump through the cat
 - iOS 15+; macOS and Xcode required for iOS build verification and signing
 - Browser target: explicitly labeled UI demo, not a system font catalog
 - English and Korean UI: follows the device language by default, with a saved override in Settings
-- AdMob native ads between every eight font families; internal builds use official Google test ads
+- AdMob native ads between every eight font families; manual release workflows select `test` (default) or Font V's `live` ad units
 
 ```sh
 flutter pub get
@@ -24,3 +24,5 @@ flutter build apk --debug
 ```
 
 See [development and release notes](docs/DEVELOPMENT.md) for architecture, native font behavior, and signing setup, and [verification results](docs/VERIFICATION.md) for completed checks and remaining work. The app is implemented from the original listing and screenshots; the original source code was not recovered.
+
+App information: [Font V](https://toolmoa.app/apps/fontv/), [privacy policy](https://toolmoa.app/apps/fontv/privacy/), and [support](https://toolmoa.app/apps/fontv/support/). Static sources are in `site/`; they deploy only to `/apps/fontv/` and the domain-root `app-ads.txt`, preserving the existing ToolMoa website.

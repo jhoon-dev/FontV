@@ -95,6 +95,14 @@ GitHub Actions에서 `iOS TestFlight` → `Run workflow`를 선택하고 `main`�
 
 GitHub의 `Android internal bundle` 수동 워크플로는 `android-internal` 보호 환경의 업로드 키로 AAB를 서명한다. 고유한 `build_number`를 지정하면 분석·테스트·서명 검증 후 `FontV-Play-internal-AAB` 아티팩트를 만든다. Google Play 업로드는 Play Console 내부 테스트 트랙에서 수행하며, 현재 자동 업로드용 서비스 계정은 등록하지 않았다. Runner의 키 파일과 key.properties는 작업 후 지운다.
 
+## 광고 크기와 출시 모드
+
+네이티브 광고는 Google의 medium 템플릿을 사용한다. 작은 템플릿의 바깥 영역만 늘려서는 영상 MediaView의 최소 크기를 보장할 수 없다. 320px 폭에서 Android의 미디어 높이는 190dp, iOS는 전체 폭의 16:9 미디어 영역이다. 네이티브 뷰 높이는 400으로 예약하며 광고 라벨과 글자 확대를 별도로 계산한다. `integration_test/ads_test.dart`는 공식 영상 테스트 단위를 실제로 로드하고 디버그 전용 플랫폼 채널로 실제 MediaView의 가로·세로가 각각 120dp/pt 이상인지 검사한다.
+
+서명 워크플로의 `ads_mode=test`는 공식 테스트 광고, `ads_mode=live`는 Font V 전용 실광고 단위를 사용한다. `USE_TEST_ADS`의 소스 기본값은 안전하게 `true`이며 출시 플래그는 iOS IPA와 Android AAB·검증 APK에 동일하게 전달한다. 실광고 단위를 사용해도 공개 스토어 연결·app-ads.txt 인증·AdMob 검토가 끝나기 전에는 게재가 제한될 수 있다.
+
+정책·지원·앱 소개 페이지의 소스는 `site/apps/fontv/`에 있고 https://toolmoa.app/apps/fontv/ 아래에 게시한다. 판매자 파일 `site/app-ads.txt`는 https://toolmoa.app/app-ads.txt 에 게시한다. 기존 ToolMoa 사이트나 다른 앱의 페이지를 교체하지 않는다. 스토어의 개발자 웹사이트는 같은 도메인을 사용해야 Google이 루트 판매자 파일을 찾을 수 있다.
+
 ## 소스 보관
 
 앱스토어 등록에 소스가 백업되는 것은 아니다. 프로젝트 전체와 잠금 파일은 GitHub `jhoon-dev/fontv`에 커밋·푸시하고, 별도로 백업한다. GitLab 프로젝트는 Git 이력 이전과 GitHub 커밋 일치 확인 후 사용자 승인으로 영구 삭제했다. iOS 서명 자료, Android 업로드 키와 CI 진단 암호화 키는 안전한 별도 위치에 백업한다. 이 자료를 소스 ZIP이나 Git에 포함하지 않는다.
