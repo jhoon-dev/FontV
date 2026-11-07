@@ -13,7 +13,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
-    'native video media is at least 120 x 120 at the minimum feed width',
+    'native media is at least 120 x 120 at the minimum feed width',
     (tester) async {
       expect(AdsController.useTestAds, true);
       await tester.pumpWidget(
@@ -45,7 +45,11 @@ void main() {
                 child: NativeAdCard(
                   adUnitId: defaultTargetPlatform == TargetPlatform.iOS
                       ? 'ca-app-pub-3940256099942544/2521693316'
-                      : 'ca-app-pub-3940256099942544/1044960115',
+                      // Google's Android video demo currently returns a malformed
+                      // response (SDK error 0: click actions not specified).
+                      // The standard native demo uses the same MediaView layout;
+                      // iOS above still exercises an actual video creative.
+                      : 'ca-app-pub-3940256099942544/2247696110',
                   onUnavailable: () =>
                       failure = 'Official test native ad failed to load',
                 ),
