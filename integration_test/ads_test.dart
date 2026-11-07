@@ -12,6 +12,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 // The shipped app goes through UMP in AdsController before requesting ads.
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
   testWidgets(
     'native media is at least 120 x 120 at the minimum feed width',
     (tester) async {
@@ -64,6 +65,10 @@ void main() {
       expect(failure, isNull);
       expect(find.byType(AdWidget), findsOneWidget);
       await tester.pump(const Duration(seconds: 2));
+      // Android texture composition completes across native/Flutter frames.
+      for (var frame = 0; frame < 20; frame++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
       expect(tester.takeException(), isNull);
       List<dynamic>? media;
       Object? inspectionError;
