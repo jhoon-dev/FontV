@@ -10,45 +10,59 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 // The shipped app goes through UMP in AdsController before requesting ads.
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  testWidgets('native small template loads inside a 320px feed card', (
-    tester,
-  ) async {
-    expect(AdsController.useTestAds, true);
-    await MobileAds.instance.initialize();
-    String? failure;
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('en'),
-        supportedLocales: AppLocalizations.supportedLocales,
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          ...GlobalMaterialLocalizations.delegates,
-        ],
-        home: Scaffold(
-          body: Center(
-            child: SizedBox(
-              width: 320,
-              height: 165,
-              child: NativeAdCard(
-                adUnitId: AdsController().nativeUnitId,
-                onUnavailable: () =>
-                    failure = 'Official test native ad failed to load',
+  testWidgets(
+    'native small template loads inside a 320px feed card',
+    (tester) async {
+      expect(AdsController.useTestAds, true);
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: Center(child: Text('Initializing test ad SDK'))),
+        ),
+      );
+      debugPrint('Font V smoke: initializing Google Mobile Ads');
+      await tester.runAsync(
+        () => MobileAds.instance.initialize().timeout(
+          const Duration(seconds: 45),
+        ),
+      );
+      debugPrint('Font V smoke: requesting official native test ad');
+      String? failure;
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            ...GlobalMaterialLocalizations.delegates,
+          ],
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 320,
+                height: 165,
+                child: NativeAdCard(
+                  adUnitId: AdsController().nativeUnitId,
+                  onUnavailable: () =>
+                      failure = 'Official test native ad failed to load',
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
-    for (
-      var i = 0;
-      i < 180 && find.byType(AdWidget).evaluate().isEmpty && failure == null;
-      i++
-    ) {
-      await tester.pump(const Duration(milliseconds: 500));
-    }
-    expect(failure, isNull);
-    expect(find.byType(AdWidget), findsOneWidget);
-    await tester.pump(const Duration(seconds: 5));
-    expect(tester.takeException(), isNull);
-  });
+      );
+      for (
+        var i = 0;
+        i < 180 && find.byType(AdWidget).evaluate().isEmpty && failure == null;
+        i++
+      ) {
+        await tester.pump(const Duration(milliseconds: 500));
+      }
+      expect(failure, isNull);
+      expect(find.byType(AdWidget), findsOneWidget);
+      await tester.pump(const Duration(seconds: 5));
+      expect(tester.takeException(), isNull);
+      debugPrint('Font V smoke: native ad rendered');
+    },
+    timeout: const Timeout(Duration(minutes: 3)),
+  );
 }

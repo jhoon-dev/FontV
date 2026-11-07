@@ -20,7 +20,13 @@ jobs:
           xcrun simctl boot "$DEVICE"
           xcrun simctl bootstatus "$DEVICE" -b
       - name: Load official test native ad
-        run: flutter test integration_test/ads_test.dart -d "$SIMULATOR_ID"
+        timeout-minutes: 12
+        run: |
+          mkdir -p artifacts/screenshots
+          flutter test integration_test/ads_test.dart -d "$SIMULATOR_ID" --verbose > artifacts/native-smoke.log 2>&1 &
+          TEST_PID=$!
+          trap 'kill "$TEST_PID" 2>/dev/null || true' EXIT TERM INT
+          wait "$TEST_PID" || { tail -n 120 artifacts/native-smoke.log; exit 1; }
       - name: Capture simulator
         if: always()
         run: |
@@ -30,4 +36,5 @@ jobs:
         if: always()
         with:
           name: FontV-native-ad-smoke
-          path: artifacts/screenshots/
+          path: artifacts/
+          retention-days: 7
