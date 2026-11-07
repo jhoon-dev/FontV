@@ -1,0 +1,33 @@
+name: Native ads smoke test
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.2'
+          cache: true
+      - run: flutter pub get
+      - name: Boot iPhone simulator
+        run: |
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; print(next(x["udid"] for k,v in d.items() if "iOS" in k for x in v if x["name"].startswith("iPhone")))')
+          echo "SIMULATOR_ID=$DEVICE" >> "$GITHUB_ENV"
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b
+      - name: Load official test native ad
+        run: flutter test integration_test/ads_test.dart -d "$SIMULATOR_ID"
+      - name: Capture simulator
+        if: always()
+        run: |
+          mkdir -p artifacts/screenshots
+          xcrun simctl io "$SIMULATOR_ID" screenshot artifacts/screenshots/ios-native-test-ad.png
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: FontV-native-ad-smoke
+          path: artifacts/screenshots/

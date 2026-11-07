@@ -4,6 +4,8 @@ import 'controller.dart';
 import 'font_catalog_model.dart';
 import 'font_preview.dart';
 import 'font_service.dart';
+import 'localization.dart';
+import 'ads.dart';
 
 const _ink = Color(0xFF242329);
 const _muted = Color(0xFF78767E);
@@ -18,6 +20,7 @@ class FontCatalog extends StatefulWidget {
     required this.emptyState,
     required this.onOpen,
     this.selectedFontId,
+    this.ads,
   });
   final FontController controller;
   final List<FontFace> fonts;
@@ -25,6 +28,7 @@ class FontCatalog extends StatefulWidget {
   final Widget emptyState;
   final ValueChanged<FontFace> onOpen;
   final String? selectedFontId;
+  final AdsController? ads;
 
   @override
   State<FontCatalog> createState() => _FontCatalogState();
@@ -37,6 +41,7 @@ class _FontCatalogState extends State<FontCatalog> {
   final _collapsedSearch = <String>{};
   final _sectionRows = <String, int>{};
   List<_CatalogRow> _rows = [];
+  List<double> _rowOffsets = [];
   double _rowExtent = 108;
   String? _activeLabel;
   bool _scrubbing = false;
@@ -100,10 +105,12 @@ class _FontCatalogState extends State<FontCatalog> {
 
   void _onScroll() {
     if (!_scroll.hasClients || _rows.isEmpty || _scrubbing) return;
-    final index = ((_scroll.offset - _headerHeight) / _rowExtent).floor().clamp(
-      0,
-      _rows.length - 1,
-    );
+    final offset = _scroll.offset - _headerHeight;
+    var index = 0;
+    for (var i = 1; i < _rowOffsets.length; i++) {
+      if (_rowOffsets[i] > offset) break;
+      index = i;
+    }
     final label = _rows[index].group.indexLabel;
     if (_activeLabel != label && mounted) setState(() => _activeLabel = label);
   }
@@ -116,11 +123,9 @@ class _FontCatalogState extends State<FontCatalog> {
       _activeLabel = label;
       _scrubbing = true;
     });
-    // Each visible row has a measured text-scaled extent. Collapsing a family
-    // changes this flattened row map, so jumps stay exact without building the
-    // hundreds of native font previews between the current and target letters.
+    // Prefix offsets include text-scaled font rows and taller ad cards.
     _scroll.jumpTo(
-      (_headerHeight + index * _rowExtent).clamp(
+      (_headerHeight + _rowOffsets[index]).clamp(
         0,
         _scroll.position.maxScrollExtent,
       ),
@@ -138,6 +143,12 @@ class _FontCatalogState extends State<FontCatalog> {
     final expandable = groups.where((group) => group.faces.length > 1).toList();
     final allExpanded = expandable.isNotEmpty && expandable.every(_isExpanded);
     final scaler = MediaQuery.textScalerOf(context);
+    final adExtent = 160 + scaler.scale(10) * 1.5;
+    final showAds =
+        c.tab == 0 &&
+        !_searching &&
+        widget.ads?.canShowAds == true &&
+        MediaQuery.sizeOf(context).width >= 372;
     _rowExtent = math.max(
       108,
       44 +
@@ -145,7 +156,7 @@ class _FontCatalogState extends State<FontCatalog> {
     );
     _rows = [];
     _sectionRows.clear();
-    for (final group in groups) {
+    for (final (groupIndex, group) in groups.indexed) {
       _sectionRows.putIfAbsent(group.indexLabel, () => _rows.length);
       if (group.faces.length == 1) {
         _rows.add(_CatalogRow(group, group.faces.single));
@@ -157,6 +168,20 @@ class _FontCatalogState extends State<FontCatalog> {
           );
         }
       }
+      if (showAds &&
+          (groupIndex + 1) % 8 == 0 &&
+          groupIndex + 1 < groups.length) {
+        final slot = (groupIndex + 1) ~/ 8;
+        if (widget.ads!.showSlot(slot)) {
+          _rows.add(_CatalogRow(group, null, adSlot: slot));
+        }
+      }
+    }
+    _rowOffsets = [];
+    var rowOffset = 0.0;
+    for (final row in _rows) {
+      _rowOffsets.add(rowOffset);
+      rowOffset += row.adSlot != null ? adExtent : _rowExtent;
     }
     final labels = _sectionRows.keys.toList();
     final active = labels.contains(_activeLabel)
@@ -183,15 +208,19 @@ class _FontCatalogState extends State<FontCatalog> {
                             TextSpan(
                               children: [
                                 TextSpan(
-                                  text: c.tab == 1 ? '즐겨찾기  ' : '폰트 패밀리  ',
+                                  text: c.tab == 1
+                                      ? '${context.l10n.favorites}  '
+                                      : '${context.l10n.families}  ',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w700,
                                     color: _ink,
                                   ),
                                 ),
                                 TextSpan(
-                                  text:
-                                      '${groups.length}개 · ${widget.fonts.length}서체',
+                                  text: context.l10n.catalogCounts(
+                                    groups.length,
+                                    widget.fonts.length,
+                                  ),
                                   style: TextStyle(color: c.skin.color),
                                 ),
                               ],
@@ -206,7 +235,9 @@ class _FontCatalogState extends State<FontCatalog> {
                             onPressed: () =>
                                 _toggleAll(expandable, allExpanded),
                             child: Text(
-                              allExpanded ? '모두 접기' : '모두 펼치기',
+                              allExpanded
+                                  ? context.l10n.collapseAll
+                                  : context.l10n.expandAll,
                               style: const TextStyle(fontSize: 11),
                             ),
                           ),
@@ -223,15 +254,26 @@ class _FontCatalogState extends State<FontCatalog> {
               )
             else
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 52, 24),
-                sliver: SliverFixedExtentList(
-                  itemExtent: _rowExtent,
+                padding: const EdgeInsets.only(bottom: 24),
+                sliver: SliverVariedExtentList(
+                  itemExtentBuilder: (index, _) => index < _rows.length
+                      ? (_rows[index].adSlot != null ? adExtent : _rowExtent)
+                      : null,
                   delegate: SliverChildBuilderDelegate((context, index) {
                     final row = _rows[index];
+                    if (row.adSlot != null) {
+                      return Padding(
+                        key: ValueKey('ad-slot:${row.adSlot}'),
+                        padding: const EdgeInsets.fromLTRB(8, 0, 44, 10),
+                        child: widget.ads!.buildSlot(context, row.adSlot!),
+                      );
+                    }
                     return Padding(
-                      padding: EdgeInsets.only(
-                        bottom: 10,
-                        left: row.nested ? 10 : 0,
+                      padding: EdgeInsets.fromLTRB(
+                        row.nested ? 34 : 24,
+                        0,
+                        52,
+                        10,
                       ),
                       child: row.face == null
                           ? _FamilyCard(
@@ -254,7 +296,7 @@ class _FontCatalogState extends State<FontCatalog> {
         ),
         if (!c.loading && c.error == null && labels.isNotEmpty)
           Positioned(
-            right: 2,
+            right: 0,
             width: 44,
             top: 8,
             bottom: 8,
@@ -312,10 +354,11 @@ class _FontCatalogState extends State<FontCatalog> {
 }
 
 class _CatalogRow {
-  const _CatalogRow(this.group, this.face, {this.nested = false});
+  const _CatalogRow(this.group, this.face, {this.nested = false, this.adSlot});
   final FontFamilyGroup group;
   final FontFace? face;
   final bool nested;
+  final int? adSlot;
 }
 
 class _AlphabetIndex extends StatelessWidget {
@@ -364,7 +407,7 @@ class _AlphabetIndex extends StatelessWidget {
                       key: ValueKey('font-index:$label'),
                       button: true,
                       selected: active == label,
-                      label: '$label 시작 폰트로 이동',
+                      label: context.l10n.indexJump(label),
                       onTap: () {
                         onSelect(label);
                         onEnd();
@@ -420,8 +463,11 @@ class _FamilyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
-    label:
-        '${group.family}, ${group.faces.length}개 서체, ${expanded ? '접기' : '펼치기'}',
+    label: context.l10n.familySemantics(
+      group.family,
+      group.faces.length,
+      expanded ? context.l10n.collapse : context.l10n.expand,
+    ),
     child: Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
@@ -472,7 +518,10 @@ class _FamilyCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '${group.faces.length}개 서체 · ${group.faces.map((f) => f.style).join(' · ')}',
+                        context.l10n.familyStyles(
+                          group.faces.length,
+                          group.faces.map((f) => f.style).join(' · '),
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -577,7 +626,9 @@ class _FontCard extends StatelessWidget {
               ),
               IconButton(
                 key: ValueKey('favorite:${face.id}'),
-                tooltip: favorite ? '즐겨찾기 해제' : '즐겨찾기 추가',
+                tooltip: favorite
+                    ? context.l10n.removeFavorite
+                    : context.l10n.addFavorite,
                 onPressed: () => controller.toggleFavorite(face.id),
                 icon: Icon(
                   favorite

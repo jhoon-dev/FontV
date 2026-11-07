@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:font_v/src/app.dart';
+import 'package:font_v/src/ads.dart';
 import 'package:font_v/src/controller.dart';
 import 'package:font_v/src/font_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,8 +28,86 @@ class _AlphabetFonts extends FontService {
   ];
 }
 
+class _FeedAds extends AdsController {
+  final hidden = <int>{};
+  @override
+  Future<void> start() async {}
+  @override
+  bool get canShowAds => true;
+  @override
+  bool showSlot(int slot) => !hidden.contains(slot);
+  @override
+  Widget buildSlot(BuildContext context, int slot) =>
+      ColoredBox(color: Colors.white, child: Text('Test ad $slot'));
+  void fail(int slot) {
+    hidden.add(slot);
+    notifyListeners();
+  }
+}
+
 void main() {
-  setUp(() => SharedPreferences.setMockInitialValues({}));
+  setUp(() => SharedPreferences.setMockInitialValues({'language': 'ko'}));
+
+  testWidgets(
+    'feed ads respect family boundaries, index, failures and filters',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 844);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final c = FontController(service: _AlphabetFonts());
+      final ads = _FeedAds();
+      addTearDown(ads.dispose);
+      await tester.pumpWidget(FontVApp(controller: c, ads: ads));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('font-index:H')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('font:face:7')).hitTestable(),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('ad-slot:1')), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.byKey(const ValueKey('ad-slot:1'))).dy,
+        greaterThan(
+          tester.getTopLeft(find.byKey(const ValueKey('font:face:7'))).dy,
+        ),
+      );
+      expect(
+        tester
+            .getRect(
+              find.descendant(
+                of: find.byKey(const ValueKey('ad-slot:1')),
+                matching: find.byType(ColoredBox),
+              ),
+            )
+            .right,
+        lessThanOrEqualTo(
+          tester.getRect(find.byKey(const ValueKey('font-index:H'))).left,
+        ),
+      );
+      await tester.tap(find.byKey(const ValueKey('font-index:Z')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('font:face:25')).hitTestable(),
+        findsOneWidget,
+      );
+      ads.fail(1);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('font-index:H')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('ad-slot:1')), findsNothing);
+      c.setQuery('Family');
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('font-index:P')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('ad-slot:2')), findsNothing);
+      c.setTab(1);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Test ad'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('family folds, expands, searches styles and filters favorites', (
     tester,

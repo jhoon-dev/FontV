@@ -15,6 +15,18 @@ enum FontSkin {
   final Color color;
 }
 
+enum AppLanguage {
+  system,
+  en,
+  ko;
+
+  Locale? get locale => this == system ? null : Locale(name);
+}
+
+enum FontLoadIssue { empty, unavailable }
+
+enum FontStorageIssue { read, write }
+
 class FontController extends ChangeNotifier {
   FontController({required this.service});
   final FontService service;
@@ -22,8 +34,9 @@ class FontController extends ChangeNotifier {
   List<FontFace> fonts = [];
   final Set<String> favorites = {};
   bool loading = true;
-  String? error;
-  String? storageError;
+  FontLoadIssue? error;
+  FontStorageIssue? storageError;
+  AppLanguage language = AppLanguage.system;
   String query = '';
   int tab = 0;
   FontSkin skin = FontSkin.pink;
@@ -50,6 +63,12 @@ class FontController extends ChangeNotifier {
       final prefs = _preferences!;
       favorites.addAll(prefs.getStringList('favorites') ?? []);
       final storedSkin = prefs.getString('skin');
+      final storedLanguage = prefs.getString('language');
+      language =
+          AppLanguage.values
+              .where((value) => value.name == storedLanguage)
+              .firstOrNull ??
+          AppLanguage.system;
       skin =
           FontSkin.values.where((s) => s.name == storedSkin).firstOrNull ??
           FontSkin.pink;
@@ -58,13 +77,13 @@ class FontController extends ChangeNotifier {
       paper = Color(prefs.getInt('paper') ?? 0xFFFFFBF5);
       sample = prefs.getString('sample') ?? sample;
     } catch (_) {
-      storageError = '설정을 불러오지 못했어요. 앱을 다시 열어주세요.';
+      storageError = FontStorageIssue.read;
     }
     try {
       fonts = await service.loadFonts();
-      if (fonts.isEmpty) error = '기기의 폰트 목록을 가져오지 못했어요.';
+      if (fonts.isEmpty) error = FontLoadIssue.empty;
     } catch (_) {
-      error = '폰트를 불러오지 못했어요. 다시 시도해주세요.';
+      error = FontLoadIssue.unavailable;
     }
     loading = false;
     _emit();
@@ -89,6 +108,12 @@ class FontController extends ChangeNotifier {
 
   void setSkin(FontSkin value) {
     skin = value;
+    _save();
+    _emit();
+  }
+
+  void setLanguage(AppLanguage value) {
+    language = value;
     _save();
     _emit();
   }
@@ -134,6 +159,7 @@ class FontController extends ChangeNotifier {
       ink.toARGB32(),
       paper.toARGB32(),
       sample,
+      language.name,
     );
     _writeQueue = _writeQueue
         .then((_) async {
@@ -146,13 +172,14 @@ class FontController extends ChangeNotifier {
             prefs.setInt('ink', snapshot.$4),
             prefs.setInt('paper', snapshot.$5),
             prefs.setString('sample', snapshot.$6),
+            prefs.setString('language', snapshot.$7),
           ]);
           if (results.any((success) => !success)) {
             throw StateError('Could not save preferences');
           }
         })
         .catchError((Object _) {
-          storageError = '설정을 저장하지 못했어요. 저장 공간을 확인해주세요.';
+          storageError = FontStorageIssue.write;
           _emit();
         });
   }

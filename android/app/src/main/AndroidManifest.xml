@@ -1,8 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:label="Font V"
         android:name="${applicationName}"
+        android:localeConfig="@xml/locales_config"
         android:icon="@mipmap/ic_launcher">
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-4326793059395006~9676440694" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

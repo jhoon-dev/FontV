@@ -4,7 +4,7 @@ on:
     inputs:
       build_number:
         description: Unique Android version code
-        default: '6'
+        default: '7'
         required: true
         type: string
 permissions:

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:font_v/src/app.dart';
+import 'package:font_v/src/ads.dart';
 import 'package:font_v/src/controller.dart';
 import 'package:font_v/src/font_service.dart';
 
@@ -38,7 +39,9 @@ void main() {
       expect(first.take(8), [137, 80, 78, 71, 13, 10, 26, 10]);
       expect(first, isNot(orderedEquals(second)));
       final c = FontController(service: service);
-      await tester.pumpWidget(FontVApp(controller: c));
+      final ads = AdsController(enabled: false);
+      addTearDown(ads.dispose);
+      await tester.pumpWidget(FontVApp(controller: c, ads: ads));
       await tester.pumpAndSettle(const Duration(milliseconds: 250));
       expect(c.error, isNull);
       if (defaultTargetPlatform == TargetPlatform.android) {

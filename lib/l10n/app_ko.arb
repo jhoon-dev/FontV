@@ -1,0 +1,142 @@
+{
+  "settingsKicker": "내 취향에 맞게",
+  "@@locale": "ko",
+  "fonts": "폰트",
+  "favorites": "즐겨찾기",
+  "settings": "설정",
+  "language": "언어",
+  "systemLanguage": "시스템 설정",
+  "languageDescription": "기기 언어를 따르거나 영어·한국어를 직접 선택하세요. 그 외 언어는 영어로 표시합니다.",
+  "chooseFont": "서체를 골라보세요.",
+  "chooseFontSubtitle": "크기와 색을 바꾸며 글자의 표정을 살펴보세요.",
+  "catalogKicker": "글자를 더 가까이",
+  "collectionKicker": "나만의 컬렉션",
+  "catalogHero": "글자마다,\n새로운 가능성.",
+  "collectionHero": "마음에 담은 서체.",
+  "browserDemoDescription": "브라우저 데모 · 실제 기기의 폰트는 모바일 앱에서 확인하세요.",
+  "catalogSubtitle": "{familyCount}개 패밀리, {faceCount}개 서체. 나만의 조합을 찾아보세요.",
+  "@catalogSubtitle": {
+    "placeholders": {
+      "familyCount": {
+        "type": "int"
+      },
+      "faceCount": {
+        "type": "int"
+      }
+    }
+  },
+  "searchHint": "폰트 이름, 패밀리 검색",
+  "clearSearch": "검색 지우기",
+  "retry": "다시 시도",
+  "noMatches": "일치하는 서체가 없어요.",
+  "favoritesEmpty": "마음에 드는 서체를 저장해보세요.",
+  "searchAdvice": "다른 이름이나 패밀리로 검색해보세요.",
+  "favoritesAdvice": "서체 옆의 북마크를 누르면 여기에 모여요.",
+  "addFavorite": "즐겨찾기 추가",
+  "removeFavorite": "즐겨찾기 해제",
+  "previewSemantics": "{name} 미리보기: {sample}",
+  "@previewSemantics": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "sample": {
+        "type": "String"
+      }
+    }
+  },
+  "sampleEnglish": "영문 샘플",
+  "sampleKorean": "한글 샘플",
+  "sampleNumbers": "숫자 샘플",
+  "customSample": "직접 입력",
+  "fontSize": "글자 크기",
+  "points": "{count} 포인트",
+  "@points": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "textColor": "글자색",
+  "backgroundColor": "배경색",
+  "resetPreview": "크기·색상 초기화",
+  "copyFontName": "폰트 이름 복사",
+  "fontNameCopied": "폰트 이름을 복사했어요.",
+  "fallbackHelp": "지원하지 않는 글자는 기기의 대체 폰트로 표시될 수 있어요.\n긴 문장은 미리보기 영역 밖에서 잘릴 수 있어요.",
+  "previewTitle": "서체 미리보기",
+  "myFontV": "나의 Font V.",
+  "theme": "테마",
+  "themeDescription": "오래전의 다섯 가지 색, 오늘의 새로운 모습.",
+  "aboutTitle": "글자를 탐색하는 작은 도구.",
+  "aboutBody": "Font V는 기기에 있는 서체를 살펴보고, 크기와 색을 바꿔보는 앱입니다. 기기의 시스템 폰트를 설치하거나 변경하지 않습니다.\n\n미리보기 문구·즐겨찾기·설정은 이 기기에 저장되며 폰트 탐색은 오프라인으로 사용할 수 있습니다. 광고는 Google AdMob에서 제공하고 네트워크 연결을 사용합니다. 폰트 목록은 기기와 OS에 따라 다릅니다.",
+  "browserDemoFooter": "브라우저에서는 3가지 데모 서체만 제공합니다. 실제 시스템 폰트 열람은 iOS·Android 앱에서 지원합니다.",
+  "sampleDialogTitle": "나만의 미리보기 문장",
+  "sampleInputHint": "여기에 문장을 입력하세요.",
+  "cancel": "취소",
+  "apply": "적용",
+  "invalidHex": "6자리 색상 코드를 입력하세요.",
+  "families": "폰트 패밀리",
+  "expandAll": "모두 펼치기",
+  "collapseAll": "모두 접기",
+  "expand": "펼치기",
+  "collapse": "접기",
+  "indexJump": "{letter} 시작 폰트로 이동",
+  "@indexJump": {
+    "placeholders": {
+      "letter": {
+        "type": "String"
+      }
+    }
+  },
+  "familySemantics": "{family}, {count}개 서체, {action}",
+  "@familySemantics": {
+    "placeholders": {
+      "family": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "familyStyles": "{count}개 서체 · {styles}",
+  "@familyStyles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "styles": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogCounts": "{families}개 · {faces}서체",
+  "@catalogCounts": {
+    "placeholders": {
+      "families": {
+        "type": "int"
+      },
+      "faces": {
+        "type": "int"
+      }
+    }
+  },
+  "fontLoadEmpty": "기기의 폰트 목록을 가져오지 못했어요.",
+  "fontLoadFailed": "폰트를 불러오지 못했어요. 다시 시도해주세요.",
+  "storageReadFailed": "설정을 불러오지 못했어요. 앱을 다시 열어주세요.",
+  "storageWriteFailed": "설정을 저장하지 못했어요. 저장 공간을 확인해주세요.",
+  "previewRetry": "미리보기 다시 불러오기",
+  "themePink": "핑크",
+  "themeRed": "레드",
+  "themeGreen": "그린",
+  "themeBrown": "브라운",
+  "themePurple": "퍼플",
+  "adLabel": "광고",
+  "adLoading": "광고 불러오는 중",
+  "adPrivacy": "광고 개인정보 설정",
+  "privacyUnavailable": "지금은 개인정보 설정을 열 수 없어요. 잠시 후 다시 시도해 주세요."
+}

@@ -1,11 +1,14 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'controller.dart';
 import 'font_preview.dart';
 import 'font_catalog.dart';
+import 'localization.dart';
+import '../l10n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'font_service.dart';
+import 'ads.dart';
 
 const _canvas = Color(0xFFF8F7F4);
 const _text = Color(0xFF242329);
@@ -13,24 +16,41 @@ const _muted = Color(0xFF78767E);
 const _line = Color(0xFFE8E5E2);
 
 class FontVApp extends StatefulWidget {
-  const FontVApp({super.key, required this.controller});
+  const FontVApp({super.key, required this.controller, this.ads});
   final FontController controller;
+  final AdsController? ads;
   @override
   State<FontVApp> createState() => _FontVAppState();
 }
 
 class _FontVAppState extends State<FontVApp> {
+  late final AdsController _ads;
   @override
   void initState() {
     super.initState();
+    _ads =
+        widget.ads ?? AdsController(enabled: !widget.controller.service.isDemo);
     unawaited(widget.controller.initialize());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_ads.start());
+    });
   }
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: widget.controller,
+    listenable: Listenable.merge([widget.controller, _ads]),
     builder: (context, _) => MaterialApp(
       title: 'Font V · ToolMoa',
+      locale: widget.controller.language.locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        ...GlobalMaterialLocalizations.delegates,
+      ],
+      localeListResolutionCallback: (locales, _) =>
+          locales?.firstOrNull?.languageCode == 'ko'
+          ? const Locale('ko')
+          : const Locale('en'),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -62,19 +82,21 @@ class _FontVAppState extends State<FontVApp> {
           ),
         ),
       ),
-      home: FontHome(controller: widget.controller),
+      home: FontHome(controller: widget.controller, ads: _ads),
     ),
   );
   @override
   void dispose() {
     widget.controller.dispose();
+    if (widget.ads == null) _ads.dispose();
     super.dispose();
   }
 }
 
 class FontHome extends StatefulWidget {
-  const FontHome({super.key, required this.controller});
+  const FontHome({super.key, required this.controller, required this.ads});
   final FontController controller;
+  final AdsController ads;
   @override
   State<FontHome> createState() => _FontHomeState();
 }
@@ -119,12 +141,12 @@ class _FontHomeState extends State<FontHome> {
                   color: c.skin.color,
                 ),
               ),
-              const Text(
+              Text(
                 ' V',
                 style: TextStyle(fontSize: 29, fontWeight: FontWeight.w300),
               ),
               const SizedBox(width: 14),
-              const Text(
+              Text(
                 'TOOLMOA',
                 maxLines: 1,
                 overflow: TextOverflow.fade,
@@ -139,35 +161,11 @@ class _FontHomeState extends State<FontHome> {
             ],
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 20),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
-              decoration: BoxDecoration(
-                border: Border.all(color: _line),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                c.service.isDemo
-                    ? 'DEMO'
-                    : defaultTargetPlatform == TargetPlatform.iOS
-                    ? 'iOS'
-                    : 'ANDROID',
-                style: const TextStyle(
-                  fontSize: 9,
-                  letterSpacing: 1.4,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
       body: SafeArea(
         top: false,
         child: c.tab == 2
-            ? SettingsPanel(controller: c)
+            ? SettingsPanel(controller: c, ads: widget.ads)
             : Row(
                 children: [
                   Expanded(
@@ -191,10 +189,10 @@ class _FontHomeState extends State<FontHome> {
                                   face: _selected!,
                                   embedded: true,
                                 )
-                              : const _EmptyState(
+                              : _EmptyState(
                                   icon: Icons.text_fields_rounded,
-                                  title: '서체를 골라보세요.',
-                                  subtitle: '크기와 색을 바꾸며 글자의 표정을 살펴보세요.',
+                                  title: context.l10n.chooseFont,
+                                  subtitle: context.l10n.chooseFontSubtitle,
                                 ),
                         ),
                       ),
@@ -211,17 +209,20 @@ class _FontHomeState extends State<FontHome> {
           _search.clear();
           c.setTab(value);
         },
-        destinations: const [
+        destinations: [
           NavigationDestination(
             icon: Icon(Icons.text_fields_rounded),
-            label: '폰트',
+            label: context.l10n.fonts,
           ),
           NavigationDestination(
             icon: Icon(Icons.bookmark_border_rounded),
             selectedIcon: Icon(Icons.bookmark_rounded),
-            label: '즐겨찾기',
+            label: context.l10n.favorites,
           ),
-          NavigationDestination(icon: Icon(Icons.tune_rounded), label: '설정'),
+          NavigationDestination(
+            icon: Icon(Icons.tune_rounded),
+            label: context.l10n.settings,
+          ),
         ],
       ),
     );
@@ -229,6 +230,7 @@ class _FontHomeState extends State<FontHome> {
 
   Widget _catalog(BuildContext context, bool wide, List<FontFace> fonts) {
     return FontCatalog(
+      ads: widget.ads,
       controller: c,
       fonts: fonts,
       selectedFontId: wide ? _selected?.id : null,
@@ -242,7 +244,9 @@ class _FontHomeState extends State<FontHome> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  c.tab == 1 ? 'YOUR COLLECTION' : 'A CLOSER LOOK AT LETTERS',
+                  c.tab == 1
+                      ? context.l10n.collectionKicker
+                      : context.l10n.catalogKicker,
                   style: TextStyle(
                     color: c.skin.color,
                     fontSize: 10,
@@ -252,7 +256,9 @@ class _FontHomeState extends State<FontHome> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  c.tab == 1 ? '마음에 담은 서체.' : '글자마다,\n새로운 가능성.',
+                  c.tab == 1
+                      ? context.l10n.collectionHero
+                      : context.l10n.catalogHero,
                   style: const TextStyle(
                     fontSize: 34,
                     fontWeight: FontWeight.w700,
@@ -263,8 +269,11 @@ class _FontHomeState extends State<FontHome> {
                 const SizedBox(height: 12),
                 Text(
                   c.service.isDemo
-                      ? '브라우저 데모 · 실제 기기의 폰트는 모바일 앱에서 확인하세요.'
-                      : '${c.familyCount}개 패밀리, ${c.fonts.length}개 서체. 나만의 조합을 찾아보세요.',
+                      ? context.l10n.browserDemoDescription
+                      : context.l10n.catalogSubtitle(
+                          c.familyCount,
+                          c.fonts.length,
+                        ),
                   style: const TextStyle(
                     color: _muted,
                     fontSize: 12,
@@ -275,7 +284,7 @@ class _FontHomeState extends State<FontHome> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      c.storageError!,
+                      context.l10n.storageIssue(c.storageError!),
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
                         fontSize: 12,
@@ -289,13 +298,13 @@ class _FontHomeState extends State<FontHome> {
                   onChanged: c.setQuery,
                   textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
-                    hintText: '폰트 이름, 패밀리 검색',
+                    hintText: context.l10n.searchHint,
                     hintStyle: const TextStyle(color: _muted, fontSize: 13),
                     prefixIcon: const Icon(Icons.search_rounded, size: 21),
                     suffixIcon: c.query.isEmpty
                         ? null
                         : IconButton(
-                            tooltip: '검색 지우기',
+                            tooltip: context.l10n.clearSearch,
                             onPressed: () {
                               _search.clear();
                               c.setQuery('');
@@ -314,10 +323,10 @@ class _FontHomeState extends State<FontHome> {
           : c.error != null
           ? _EmptyState(
               icon: Icons.error_outline,
-              title: c.error!,
+              title: context.l10n.loadIssue(c.error!),
               action: TextButton(
                 onPressed: c.initialize,
-                child: const Text('다시 시도'),
+                child: Text(context.l10n.retry),
               ),
             )
           : _EmptyState(
@@ -325,11 +334,11 @@ class _FontHomeState extends State<FontHome> {
                   ? Icons.search_off_rounded
                   : Icons.bookmark_border_rounded,
               title: c.query.isNotEmpty
-                  ? '일치하는 서체가 없어요.'
-                  : '마음에 드는 서체를 저장해보세요.',
+                  ? context.l10n.noMatches
+                  : context.l10n.favoritesEmpty,
               subtitle: c.query.isNotEmpty
-                  ? '다른 이름이나 패밀리로 검색해보세요.'
-                  : '서체 옆의 북마크를 누르면 여기에 모여요.',
+                  ? context.l10n.searchAdvice
+                  : context.l10n.favoritesAdvice,
             ),
     );
   }
@@ -394,7 +403,9 @@ class FontDetail extends StatelessWidget {
                 ),
               ),
               IconButton(
-                tooltip: c.favorites.contains(face.id) ? '즐겨찾기 해제' : '즐겨찾기 추가',
+                tooltip: c.favorites.contains(face.id)
+                    ? context.l10n.removeFavorite
+                    : context.l10n.addFavorite,
                 onPressed: () => c.toggleFavorite(face.id),
                 icon: Icon(
                   c.favorites.contains(face.id)
@@ -416,7 +427,7 @@ class FontDetail extends StatelessWidget {
             ),
             padding: const EdgeInsets.all(24),
             child: Semantics(
-              label: '${face.name} 미리보기: ${c.sample}',
+              label: context.l10n.previewSemantics(face.name, c.sample),
               image: true,
               child: ExcludeSemantics(
                 child: ClipRect(
@@ -438,28 +449,31 @@ class FontDetail extends StatelessWidget {
             children: [
               _SampleChip(
                 label: 'Aa',
-                tooltip: '영문 샘플',
+                tooltip: context.l10n.sampleEnglish,
                 onTap: () => c.setSample(
                   'The quick brown fox\njumps over the lazy dog.\n\nABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz',
                 ),
               ),
               _SampleChip(
                 label: '가나다',
-                tooltip: '한글 샘플',
+                tooltip: context.l10n.sampleKorean,
                 onTap: () => c.setSample(
                   '글자마다, 새로운 가능성.\n\n가나다라마바사아자차카타파하\n다람쥐 헌 쳇바퀴에 타고파.',
                 ),
               ),
               _SampleChip(
                 label: '123',
-                tooltip: '숫자 샘플',
+                tooltip: context.l10n.sampleNumbers,
                 onTap: () => c.setSample(
                   '0123456789\n\n! @ # \$ % ^ & * ( )\n+ − × ÷ = ≠ < >',
                 ),
               ),
               ActionChip(
                 avatar: const Icon(Icons.edit_outlined, size: 14),
-                label: const Text('직접 입력', style: TextStyle(fontSize: 11)),
+                label: Text(
+                  context.l10n.customSample,
+                  style: TextStyle(fontSize: 11),
+                ),
                 onPressed: () => _editSample(context, c),
               ),
             ],
@@ -467,8 +481,8 @@ class FontDetail extends StatelessWidget {
           const SizedBox(height: 24),
           Row(
             children: [
-              const Text(
-                '글자 크기',
+              Text(
+                context.l10n.fontSize,
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
               ),
               const Spacer(),
@@ -484,7 +498,7 @@ class FontDetail extends StatelessWidget {
           ),
           Row(
             children: [
-              const Text('A', style: TextStyle(fontSize: 12, color: _muted)),
+              Text('A', style: TextStyle(fontSize: 12, color: _muted)),
               Expanded(
                 child: Slider(
                   key: const Key('font-size'),
@@ -493,11 +507,12 @@ class FontDetail extends StatelessWidget {
                   max: 96,
                   divisions: 84,
                   label: '${c.size.round()} pt',
-                  semanticFormatterCallback: (value) => '${value.round()} 포인트',
+                  semanticFormatterCallback: (value) =>
+                      context.l10n.points(value.round()),
                   onChanged: c.setSize,
                 ),
               ),
-              const Text('A', style: TextStyle(fontSize: 23, color: _muted)),
+              Text('A', style: TextStyle(fontSize: 23, color: _muted)),
             ],
           ),
           const SizedBox(height: 10),
@@ -505,7 +520,7 @@ class FontDetail extends StatelessWidget {
             children: [
               Expanded(
                 child: _ColorButton(
-                  label: '글자색',
+                  label: context.l10n.textColor,
                   color: c.ink,
                   onTap: () => _pickColor(context, c, true),
                 ),
@@ -513,7 +528,7 @@ class FontDetail extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _ColorButton(
-                  label: '배경색',
+                  label: context.l10n.backgroundColor,
                   color: c.paper,
                   onTap: () => _pickColor(context, c, false),
                 ),
@@ -526,16 +541,19 @@ class FontDetail extends StatelessWidget {
               TextButton.icon(
                 onPressed: c.resetPreview,
                 icon: const Icon(Icons.restart_alt, size: 16),
-                label: const Text('크기·색상 초기화', style: TextStyle(fontSize: 11)),
+                label: Text(
+                  context.l10n.resetPreview,
+                  style: TextStyle(fontSize: 11),
+                ),
               ),
               const Spacer(),
               IconButton(
-                tooltip: '폰트 이름 복사',
+                tooltip: context.l10n.copyFontName,
                 onPressed: () async {
                   await Clipboard.setData(ClipboardData(text: face.name));
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('폰트 이름을 복사했어요.')),
+                      SnackBar(content: Text(context.l10n.fontNameCopied)),
                     );
                   }
                 },
@@ -544,8 +562,8 @@ class FontDetail extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            '지원하지 않는 글자는 기기의 대체 폰트로 표시될 수 있어요.\n긴 문장은 미리보기 영역 밖에서 잘릴 수 있어요.',
+          Text(
+            context.l10n.fallbackHelp,
             style: TextStyle(fontSize: 10, height: 1.7, color: _muted),
           ),
         ],
@@ -553,7 +571,10 @@ class FontDetail extends StatelessWidget {
       if (embedded) return content;
       return Scaffold(
         appBar: AppBar(
-          title: const Text('서체 미리보기', style: TextStyle(fontSize: 15)),
+          title: Text(
+            context.l10n.previewTitle,
+            style: TextStyle(fontSize: 15),
+          ),
         ),
         body: SafeArea(top: false, child: content),
       );
@@ -562,14 +583,15 @@ class FontDetail extends StatelessWidget {
 }
 
 class SettingsPanel extends StatelessWidget {
-  const SettingsPanel({super.key, required this.controller});
+  const SettingsPanel({super.key, required this.controller, required this.ads});
   final FontController controller;
+  final AdsController ads;
   @override
   Widget build(BuildContext context) => ListView(
     padding: const EdgeInsets.all(24),
     children: [
       Text(
-        'MAKE IT YOURS',
+        context.l10n.settingsKicker,
         style: TextStyle(
           fontSize: 10,
           letterSpacing: 2,
@@ -578,8 +600,8 @@ class SettingsPanel extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 12),
-      const Text(
-        '나의 Font V.',
+      Text(
+        context.l10n.myFontV,
         style: TextStyle(
           fontSize: 34,
           fontWeight: FontWeight.w700,
@@ -587,13 +609,44 @@ class SettingsPanel extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 32),
-      const Text(
-        '테마',
+      Text(
+        context.l10n.language,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      ),
+      const SizedBox(height: 8),
+      Text(
+        context.l10n.languageDescription,
+        style: const TextStyle(fontSize: 12, color: _muted, height: 1.6),
+      ),
+      const SizedBox(height: 16),
+      DropdownButtonFormField<AppLanguage>(
+        key: const Key('app-language'),
+        initialValue: controller.language,
+        isExpanded: true,
+        items: [
+          DropdownMenuItem(
+            value: AppLanguage.system,
+            child: Text(
+              context.l10n.systemLanguage,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const DropdownMenuItem(value: AppLanguage.en, child: Text('English')),
+          const DropdownMenuItem(value: AppLanguage.ko, child: Text('한국어')),
+        ],
+        onChanged: (language) {
+          if (language != null) controller.setLanguage(language);
+        },
+      ),
+      const SizedBox(height: 32),
+      Text(
+        context.l10n.theme,
         style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
       ),
       const SizedBox(height: 8),
-      const Text(
-        '오래전의 다섯 가지 색, 오늘의 새로운 모습.',
+      Text(
+        context.l10n.themeDescription,
         style: TextStyle(fontSize: 12, color: _muted),
       ),
       const SizedBox(height: 20),
@@ -633,7 +686,10 @@ class SettingsPanel extends StatelessWidget {
                               : null,
                         ),
                         const SizedBox(height: 10),
-                        Text(skin.label, style: const TextStyle(fontSize: 11)),
+                        Text(
+                          context.l10n.skinName(skin),
+                          style: const TextStyle(fontSize: 11),
+                        ),
                       ],
                     ),
                   ),
@@ -643,18 +699,30 @@ class SettingsPanel extends StatelessWidget {
             .toList(),
       ),
       const SizedBox(height: 36),
+      if (ads.privacyOptionsRequired)
+        ListTile(
+          key: const Key('ad-privacy-options'),
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.privacy_tip_outlined),
+          title: Text(context.l10n.adPrivacy),
+          onTap: () async {
+            final success = await ads.openPrivacyOptions();
+            if (!success && context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(context.l10n.privacyUnavailable)),
+              );
+            }
+          },
+        ),
       const Divider(),
       const SizedBox(height: 24),
-      const Text(
-        '글자를 탐색하는 작은 도구.',
+      Text(
+        context.l10n.aboutTitle,
         style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600),
       ),
       const SizedBox(height: 12),
-      const Text(
-        'Font V는 기기에 있는 서체를 살펴보고, 크기와 색을 바꿔보는 앱입니다. '
-        '기기의 시스템 폰트를 설치하거나 변경하지 않습니다.\n\n'
-        '즐겨찾기와 설정은 이 기기에만 저장됩니다. 계정, 광고, 분석 추적 없이 오프라인으로 사용할 수 있습니다. '
-        'iOS와 Android의 폰트 목록은 기기와 OS 버전에 따라 다릅니다.',
+      Text(
+        context.l10n.aboutBody,
         style: TextStyle(fontSize: 12, height: 1.9, color: _muted),
       ),
       const SizedBox(height: 30),
@@ -692,7 +760,7 @@ class SettingsPanel extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Developed by jhoon-dev',
               style: TextStyle(fontSize: 11, height: 1.5, color: _muted),
             ),
@@ -700,10 +768,10 @@ class SettingsPanel extends StatelessWidget {
         ),
       ),
       if (controller.service.isDemo)
-        const Padding(
+        Padding(
           padding: EdgeInsets.only(top: 20),
           child: Text(
-            '브라우저에서는 3가지 데모 서체만 제공합니다. 실제 시스템 폰트 열람은 iOS·Android 앱에서 지원합니다.',
+            context.l10n.browserDemoFooter,
             style: TextStyle(fontSize: 11, color: _muted, height: 1.7),
           ),
         ),
@@ -826,7 +894,7 @@ Future<void> _editSample(BuildContext context, FontController c) async {
   final value = await showDialog<String>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('나만의 미리보기 문장'),
+      title: Text(context.l10n.sampleDialogTitle),
       content: SizedBox(
         width: 440,
         child: TextField(
@@ -836,17 +904,17 @@ Future<void> _editSample(BuildContext context, FontController c) async {
           minLines: 4,
           maxLines: 8,
           maxLength: 1000,
-          decoration: const InputDecoration(hintText: '여기에 문장을 입력하세요.'),
+          decoration: InputDecoration(hintText: context.l10n.sampleInputHint),
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('취소'),
+          child: Text(context.l10n.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(context, text.text),
-          child: const Text('적용'),
+          child: Text(context.l10n.apply),
         ),
       ],
     ),
@@ -868,7 +936,7 @@ Future<void> _pickColor(
     showDragHandle: true,
     builder: (_) => _ColorPicker(
       initial: foreground ? c.ink : c.paper,
-      title: foreground ? '글자색' : '배경색',
+      foreground: foreground,
     ),
   );
   if (color != null) {
@@ -877,9 +945,9 @@ Future<void> _pickColor(
 }
 
 class _ColorPicker extends StatefulWidget {
-  const _ColorPicker({required this.initial, required this.title});
+  const _ColorPicker({required this.initial, required this.foreground});
   final Color initial;
-  final String title;
+  final bool foreground;
   @override
   State<_ColorPicker> createState() => _ColorPickerState();
 }
@@ -887,14 +955,14 @@ class _ColorPicker extends StatefulWidget {
 class _ColorPickerState extends State<_ColorPicker> {
   late Color color = widget.initial;
   late final hex = TextEditingController(text: _hex(color));
-  String? error;
+  bool invalid = false;
   static String _hex(Color c) =>
       c.toARGB32().toRadixString(16).substring(2).toUpperCase();
   void change(Color next) {
     setState(() {
       color = next;
       hex.text = _hex(next);
-      error = null;
+      invalid = false;
     });
   }
 
@@ -913,7 +981,9 @@ class _ColorPickerState extends State<_ColorPicker> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.title,
+              widget.foreground
+                  ? context.l10n.textColor
+                  : context.l10n.backgroundColor,
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 20),
@@ -1009,14 +1079,14 @@ class _ColorPickerState extends State<_ColorPicker> {
               decoration: InputDecoration(
                 prefixText: '# ',
                 labelText: 'HEX',
-                errorText: error,
+                errorText: invalid ? context.l10n.invalidHex : null,
               ),
               onChanged: (value) => setState(() {
                 if (RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(value)) {
                   color = Color(0xFF000000 | int.parse(value, radix: 16));
-                  error = null;
+                  invalid = false;
                 } else {
-                  error = '6자리 색상 코드를 입력하세요.';
+                  invalid = true;
                 }
               }),
             ),
@@ -1024,12 +1094,12 @@ class _ColorPickerState extends State<_ColorPicker> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: error == null
+                onPressed: !invalid
                     ? () => Navigator.pop(context, color)
                     : null,
-                child: const Padding(
+                child: Padding(
                   padding: EdgeInsets.all(14),
-                  child: Text('적용'),
+                  child: Text(context.l10n.apply),
                 ),
               ),
             ),

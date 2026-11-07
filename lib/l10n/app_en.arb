@@ -1,0 +1,142 @@
+{
+  "settingsKicker": "MAKE IT YOURS",
+  "@@locale": "en",
+  "fonts": "Fonts",
+  "favorites": "Favorites",
+  "settings": "Settings",
+  "language": "Language",
+  "systemLanguage": "System setting",
+  "languageDescription": "Follow your device language, or choose English or Korean. Other languages use English.",
+  "chooseFont": "Pick a typeface.",
+  "chooseFontSubtitle": "Explore its character through size and color.",
+  "catalogKicker": "A CLOSER LOOK AT LETTERS",
+  "collectionKicker": "YOUR COLLECTION",
+  "catalogHero": "Every letter,\na new possibility.",
+  "collectionHero": "Typefaces you love.",
+  "browserDemoDescription": "Browser demo · Explore real device fonts in the mobile app.",
+  "catalogSubtitle": "{familyCount} families, {faceCount} faces. Find your own combination.",
+  "@catalogSubtitle": {
+    "placeholders": {
+      "familyCount": {
+        "type": "int"
+      },
+      "faceCount": {
+        "type": "int"
+      }
+    }
+  },
+  "searchHint": "Search fonts and families",
+  "clearSearch": "Clear search",
+  "retry": "Try again",
+  "noMatches": "No matching typefaces.",
+  "favoritesEmpty": "Save a typeface you love.",
+  "searchAdvice": "Try another name or family.",
+  "favoritesAdvice": "Tap a bookmark to collect typefaces here.",
+  "addFavorite": "Add to favorites",
+  "removeFavorite": "Remove from favorites",
+  "previewSemantics": "{name} preview: {sample}",
+  "@previewSemantics": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "sample": {
+        "type": "String"
+      }
+    }
+  },
+  "sampleEnglish": "English sample",
+  "sampleKorean": "Korean sample",
+  "sampleNumbers": "Number sample",
+  "customSample": "Your text",
+  "fontSize": "Font size",
+  "points": "{count} points",
+  "@points": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "textColor": "Text color",
+  "backgroundColor": "Background",
+  "resetPreview": "Reset size and colors",
+  "copyFontName": "Copy font name",
+  "fontNameCopied": "Font name copied.",
+  "fallbackHelp": "Unsupported characters may use a fallback font.\nLong text may be clipped by the preview area.",
+  "previewTitle": "Typeface preview",
+  "myFontV": "Your Font V.",
+  "theme": "Theme",
+  "themeDescription": "Five familiar colors, a fresh new look.",
+  "aboutTitle": "A little tool for exploring letters.",
+  "aboutBody": "Font V explores typefaces available on your device and previews their size and colors. It does not install or change system fonts.\n\nYour preview text, favorites and settings stay on this device. Font browsing works offline. Ads are provided by Google AdMob and require an internet connection. Available fonts vary by device and OS.",
+  "browserDemoFooter": "This browser demo offers three sample styles. Real system fonts are available in the iOS and Android apps.",
+  "sampleDialogTitle": "Your preview text",
+  "sampleInputHint": "Enter your text here.",
+  "cancel": "Cancel",
+  "apply": "Apply",
+  "invalidHex": "Enter a six-digit color code.",
+  "families": "Font families",
+  "expandAll": "Expand all",
+  "collapseAll": "Collapse all",
+  "expand": "Expand",
+  "collapse": "Collapse",
+  "indexJump": "Jump to fonts starting with {letter}",
+  "@indexJump": {
+    "placeholders": {
+      "letter": {
+        "type": "String"
+      }
+    }
+  },
+  "familySemantics": "{family}, {count} styles. {action}",
+  "@familySemantics": {
+    "placeholders": {
+      "family": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "familyStyles": "{count} styles · {styles}",
+  "@familyStyles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "styles": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogCounts": "{families} · {faces} faces",
+  "@catalogCounts": {
+    "placeholders": {
+      "families": {
+        "type": "int"
+      },
+      "faces": {
+        "type": "int"
+      }
+    }
+  },
+  "fontLoadEmpty": "No device fonts were returned.",
+  "fontLoadFailed": "Could not load fonts. Please try again.",
+  "storageReadFailed": "Could not load settings. Please reopen the app.",
+  "storageWriteFailed": "Could not save settings. Check available storage.",
+  "previewRetry": "Reload preview",
+  "themePink": "Pink",
+  "themeRed": "Red",
+  "themeGreen": "Green",
+  "themeBrown": "Brown",
+  "themePurple": "Purple",
+  "adLabel": "Ad",
+  "adLoading": "Loading ad",
+  "adPrivacy": "Ad privacy choices",
+  "privacyUnavailable": "Privacy choices are unavailable right now. Try again later."
+}

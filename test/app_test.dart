@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'controller_test.dart' show TestFonts;
 
 void main() {
-  setUp(() => SharedPreferences.setMockInitialValues({}));
+  setUp(() => SharedPreferences.setMockInitialValues({'language': 'ko'}));
   testWidgets('search, open preview, save favorite, and change skin', (
     tester,
   ) async {
@@ -35,7 +35,7 @@ void main() {
     await tester.tap(find.text('적용'));
     await tester.pumpAndSettle();
     expect(c.sample, '가나다 ABC 123');
-    await tester.pageBack();
+    await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
     await tester.tap(find.text('즐겨찾기').last);
     await tester.pumpAndSettle();

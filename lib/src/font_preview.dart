@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'font_service.dart';
+import 'localization.dart';
 
 /// The OS renders its own fonts, preserving collection indexes and variation axes.
 class FontPreview extends StatefulWidget {
@@ -93,7 +94,7 @@ class _FontPreviewState extends State<FontPreview> {
         if (_failed) {
           return Center(
             child: IconButton(
-              tooltip: '미리보기 다시 불러오기',
+              tooltip: context.l10n.previewRetry,
               onPressed: () => setState(() {
                 _key = null;
                 _failed = false;
