@@ -20,6 +20,20 @@ import UIKit
     channel.setMethodCallHandler { [weak self] call, result in
       guard let self = self else { return }
       switch call.method {
+      #if DEBUG
+      case "inspectNativeAdMedia":
+        var media: [[String: Any]] = []
+        func inspect(_ view: UIView) {
+          if NSStringFromClass(type(of: view)) == "GADMediaView" {
+            media.append(["width": view.bounds.width, "height": view.bounds.height,
+                          "visible": !view.isHidden && view.window != nil])
+          }
+          view.subviews.forEach(inspect)
+        }
+        UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+          .flatMap { $0.windows }.forEach(inspect)
+        result(media)
+      #endif
       case "getFonts":
         // UIKit enumeration happens on the main thread. No downloaded or private fonts.
         let fonts: [[String: String]] = UIFont.familyNames.sorted().flatMap { family in

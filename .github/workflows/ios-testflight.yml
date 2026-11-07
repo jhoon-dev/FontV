@@ -5,12 +5,17 @@ on:
       build_number:
         description: Unique iOS build number
         required: true
-        default: '8'
+        default: '9'
         type: string
       distribute_only:
         description: Verify or distribute an existing build without uploading again
         default: false
         type: boolean
+      ads_mode:
+        description: Use official test ads or Font V live ad units
+        type: choice
+        default: test
+        options: [test, live]
 permissions:
   contents: read
 concurrency:
@@ -36,6 +41,7 @@ jobs:
         run: node tool/run_ios_ci.mjs
         env:
           FONTV_BUILD_NUMBER: ${{ inputs.build_number }}
+          FONTV_TEST_ADS: ${{ inputs.ads_mode != 'live' }}
           FONTV_DISTRIBUTE_ONLY: ${{ inputs.distribute_only }}
           FONTV_DIAGNOSTICS_KEY: ${{ secrets.FONTV_DIAGNOSTICS_KEY }}
           MAS_CSC_LINK: ${{ secrets.MAS_CSC_LINK }}

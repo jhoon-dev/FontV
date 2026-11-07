@@ -8,7 +8,9 @@ import {createPrivateKey, sign, randomBytes, createHash} from 'node:crypto';
 if (process.platform !== 'darwin') throw Error('macOS is required');
 if (process.env.NODE_OPTIONS || process.env.NODE_DEBUG || process.env.NODE_V8_COVERAGE || process.execArgv.some(v=>v.includes('inspect'))) throw Error('Private runtime required');
 const team='V6445K474Q', bundle='app.toolmoa.fontv', version='2.0.0';
-const build=process.env.FONTV_BUILD_NUMBER || '8';
+const build=process.env.FONTV_BUILD_NUMBER || '9';
+const testAds=process.env.FONTV_TEST_ADS || 'true';
+if(!['true','false'].includes(testAds))throw Error('Invalid ads mode');
 if (!/^\d+$/.test(build)) throw Error('Invalid build number');
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'fontv-sign-'));
 fs.chmodSync(temp,0o700);
@@ -103,7 +105,7 @@ print(json.dumps({'uuid':p['UUID'],'name':p['Name']}))`,plistFile,team,bundle,id
   run('python3',['-c',`import plistlib,sys
 plistlib.dump(dict(method='app-store-connect',destination='export',signingStyle='manual',teamID=sys.argv[2],signingCertificate=sys.argv[3],provisioningProfiles={sys.argv[4]:sys.argv[5]},manageAppVersionAndBuildNumber=False,stripSwiftSymbols=True,uploadSymbols=False),open(sys.argv[1],'wb'))`,exportOptions,team,identity,bundle,details.uuid]);
   console.log('Signing profile ready. Building Font V.');
-  for(const [cmd,args] of [['flutter',['pub','get']],['flutter',['analyze']],['flutter',['test']],['flutter',['build','ipa','--release',`--build-name=${version}`,`--build-number=${build}`,`--export-options-plist=${exportOptions}`]]]){
+  for(const [cmd,args] of [['flutter',['pub','get']],['flutter',['analyze']],['flutter',['test']],['flutter',['build','ipa','--release',`--build-name=${version}`,`--build-number=${build}`,`--dart-define=USE_TEST_ADS=${testAds}`,`--export-options-plist=${exportOptions}`]]]){
     try{console.log(run(cmd,args));}catch(e){console.error(e.stdout?.toString(),e.stderr?.toString());throw Error(`${cmd} ${args[0]} failed`);}
   }
   console.log(run('python3',['tool/verify_ios_archive.py',bundle,build]));

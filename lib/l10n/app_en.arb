@@ -1,4 +1,7 @@
 {
+  "privacyPolicy": "Privacy policy",
+  "appSupport": "Help and support",
+  "openLinkError": "Could not open this page. Please try again later.",
   "settingsKicker": "MAKE IT YOURS",
   "@@locale": "en",
   "fonts": "Fonts",

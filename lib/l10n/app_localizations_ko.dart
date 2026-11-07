@@ -9,6 +9,15 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get privacyPolicy => '개인정보처리방침';
+
+  @override
+  String get appSupport => '도움말 및 문의';
+
+  @override
+  String get openLinkError => '페이지를 열지 못했습니다. 잠시 후 다시 시도해 주세요.';
+
+  @override
   String get settingsKicker => '내 취향에 맞게';
 
   @override

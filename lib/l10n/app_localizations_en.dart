@@ -9,6 +9,16 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get privacyPolicy => 'Privacy policy';
+
+  @override
+  String get appSupport => 'Help and support';
+
+  @override
+  String get openLinkError =>
+      'Could not open this page. Please try again later.';
+
+  @override
   String get settingsKicker => 'MAKE IT YOURS';
 
   @override

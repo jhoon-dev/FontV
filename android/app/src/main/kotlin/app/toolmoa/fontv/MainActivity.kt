@@ -9,6 +9,8 @@ import android.graphics.fonts.FontStyle
 import android.graphics.fonts.SystemFonts
 import android.os.Handler
 import android.os.Looper
+import android.view.View
+import android.view.ViewGroup
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
@@ -33,6 +35,22 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "app.toolmoa.fontv/fonts")
             .setMethodCallHandler { call, result ->
+                if (call.method == "inspectNativeAdMedia" &&
+                    (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+                    val media = mutableListOf<Map<String, Any>>()
+                    fun inspect(view: View) {
+                        if (view.javaClass.name == "com.google.android.gms.ads.nativead.MediaView") {
+                            val density = resources.displayMetrics.density
+                            media.add(mapOf("width" to view.width / density,
+                                "height" to view.height / density,
+                                "visible" to view.isShown))
+                        }
+                        if (view is ViewGroup) for (index in 0 until view.childCount) inspect(view.getChildAt(index))
+                    }
+                    inspect(window.decorView)
+                    result.success(media)
+                    return@setMethodCallHandler
+                }
                 // Serial background work bounds bitmap memory and keeps scrolling off the UI thread.
                 worker.execute {
                     try {

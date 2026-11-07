@@ -143,7 +143,7 @@ class _FontCatalogState extends State<FontCatalog> {
     final expandable = groups.where((group) => group.faces.length > 1).toList();
     final allExpanded = expandable.isNotEmpty && expandable.every(_isExpanded);
     final scaler = MediaQuery.textScalerOf(context);
-    final adExtent = 160 + scaler.scale(11) * 1.5;
+    final adExtent = NativeAdCard.extent(scaler) + 10;
     final showAds =
         c.tab == 0 &&
         !_searching &&

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -11,7 +13,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
-    'native small template loads inside a 320px feed card',
+    'native video media is at least 120 x 120 at the minimum feed width',
     (tester) async {
       expect(AdsController.useTestAds, true);
       await tester.pumpWidget(
@@ -39,9 +41,11 @@ void main() {
             body: Center(
               child: SizedBox(
                 width: 320,
-                height: 165,
+                height: NativeAdCard.extent(TextScaler.noScaling),
                 child: NativeAdCard(
-                  adUnitId: AdsController().nativeUnitId,
+                  adUnitId: defaultTargetPlatform == TargetPlatform.iOS
+                      ? 'ca-app-pub-3940256099942544/2521693316'
+                      : 'ca-app-pub-3940256099942544/1044960115',
                   onUnavailable: () =>
                       failure = 'Official test native ad failed to load',
                 ),
@@ -61,6 +65,20 @@ void main() {
       expect(find.byType(AdWidget), findsOneWidget);
       await tester.pump(const Duration(seconds: 2));
       expect(tester.takeException(), isNull);
+      final media = await const MethodChannel(
+        'app.toolmoa.fontv/fonts',
+      ).invokeListMethod<dynamic>('inspectNativeAdMedia');
+      expect(
+        media,
+        isNotEmpty,
+        reason: 'Measure the actual native MediaView, not its Flutter parent',
+      );
+      for (final frame in media!) {
+        debugPrint('Font V native MediaView: $frame');
+        expect(frame['width'] as num, greaterThanOrEqualTo(120));
+        expect(frame['height'] as num, greaterThanOrEqualTo(120));
+        expect(frame['visible'], true);
+      }
       debugPrint('Font V smoke: native ad rendered');
       await tester.pump(const Duration(seconds: 5));
     },

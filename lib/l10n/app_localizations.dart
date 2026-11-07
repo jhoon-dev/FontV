@@ -98,6 +98,24 @@ abstract class AppLocalizations {
     Locale('ko'),
   ];
 
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get privacyPolicy;
+
+  /// No description provided for @appSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Help and support'**
+  String get appSupport;
+
+  /// No description provided for @openLinkError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open this page. Please try again later.'**
+  String get openLinkError;
+
   /// No description provided for @settingsKicker.
   ///
   /// In en, this message translates to:

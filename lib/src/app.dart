@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'controller.dart';
@@ -586,6 +587,24 @@ class SettingsPanel extends StatelessWidget {
   const SettingsPanel({super.key, required this.controller, required this.ads});
   final FontController controller;
   final AdsController ads;
+  Future<void> _openPage(BuildContext context, String path) async {
+    try {
+      if (await launchUrl(
+        Uri.https('toolmoa.app', path),
+        mode: LaunchMode.externalApplication,
+      )) {
+        return;
+      }
+    } catch (_) {
+      /* Keep settings usable if no browser is available. */
+    }
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.openLinkError)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) => ListView(
     padding: const EdgeInsets.all(24),
@@ -699,6 +718,21 @@ class SettingsPanel extends StatelessWidget {
             .toList(),
       ),
       const SizedBox(height: 36),
+      ListTile(
+        key: const Key('privacy-policy'),
+        contentPadding: EdgeInsets.zero,
+        leading: const Icon(Icons.policy_outlined),
+        title: Text(context.l10n.privacyPolicy),
+        trailing: const Icon(Icons.open_in_new, size: 18),
+        onTap: () => _openPage(context, '/apps/fontv/privacy/'),
+      ),
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: const Icon(Icons.help_outline),
+        title: Text(context.l10n.appSupport),
+        trailing: const Icon(Icons.open_in_new, size: 18),
+        onTap: () => _openPage(context, '/apps/fontv/support/'),
+      ),
       if (ads.privacyOptionsRequired)
         ListTile(
           key: const Key('ad-privacy-options'),

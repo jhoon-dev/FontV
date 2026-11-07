@@ -128,6 +128,12 @@ class AdsController extends ChangeNotifier {
 }
 
 class NativeAdCard extends StatefulWidget {
+  // Medium templates have a dedicated media area (Android 190dp; iOS 16:9).
+  // A fixed 400pt/dp native view keeps video media above 120 x 120 even at
+  // the minimum supported 320px width; increasing a small card alone does not.
+  static const nativeHeight = 400.0;
+  static double extent(TextScaler scaler) =>
+      nativeHeight + scaler.scale(12) * 1.5 + 5;
   const NativeAdCard({
     super.key,
     required this.adUnitId,
@@ -149,7 +155,7 @@ class _NativeAdCardState extends State<NativeAdCard> {
       adUnitId: widget.adUnitId,
       request: const AdRequest(nonPersonalizedAds: true),
       nativeTemplateStyle: NativeTemplateStyle(
-        templateType: TemplateType.small,
+        templateType: TemplateType.medium,
         mainBackgroundColor: Colors.white,
         cornerRadius: 14,
         primaryTextStyle: NativeTemplateTextStyle(
@@ -159,7 +165,7 @@ class _NativeAdCardState extends State<NativeAdCard> {
         ),
         secondaryTextStyle: NativeTemplateTextStyle(
           textColor: const Color(0xFF78767E),
-          size: 11,
+          size: 12,
         ),
         callToActionTextStyle: NativeTemplateTextStyle(
           textColor: Colors.white,
@@ -198,12 +204,13 @@ class _NativeAdCardState extends State<NativeAdCard> {
               context.l10n.adLabel,
               style: const TextStyle(
                 color: Color(0xFF78767E),
-                fontSize: 11,
+                fontSize: 12,
                 height: 1.5,
               ),
             ),
           ),
-          Expanded(
+          SizedBox(
+            height: NativeAdCard.nativeHeight,
             child: _loaded && _ad != null
                 ? AdWidget(ad: _ad!)
                 : Semantics(
