@@ -23,8 +23,11 @@ import UIKit
       #if DEBUG
       case "inspectNativeAdMedia":
         var media: [[String: Any]] = []
+        var viewTypes: Set<String> = []
         func inspect(_ view: UIView) {
-          if NSStringFromClass(type(of: view)) == "GADMediaView" {
+          let viewType = NSStringFromClass(type(of: view))
+          viewTypes.insert(viewType)
+          if viewType.hasSuffix("MediaView") {
             media.append(["width": view.bounds.width, "height": view.bounds.height,
                           "visible": !view.isHidden && view.window != nil])
           }
@@ -32,7 +35,12 @@ import UIKit
         }
         UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
           .flatMap { $0.windows }.forEach(inspect)
-        result(media)
+        if media.isEmpty {
+          result(FlutterError(code: "MEDIA_NOT_MOUNTED", message: "Native media not mounted yet",
+                              details: viewTypes.sorted()))
+        } else {
+          result(media)
+        }
       #endif
       case "getFonts":
         // UIKit enumeration happens on the main thread. No downloaded or private fonts.

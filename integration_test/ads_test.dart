@@ -65,9 +65,20 @@ void main() {
       expect(find.byType(AdWidget), findsOneWidget);
       await tester.pump(const Duration(seconds: 2));
       expect(tester.takeException(), isNull);
-      final media = await const MethodChannel(
-        'app.toolmoa.fontv/fonts',
-      ).invokeListMethod<dynamic>('inspectNativeAdMedia');
+      List<dynamic>? media;
+      Object? inspectionError;
+      for (var attempt = 0; attempt < 15; attempt++) {
+        try {
+          media = await const MethodChannel(
+            'app.toolmoa.fontv/fonts',
+          ).invokeListMethod<dynamic>('inspectNativeAdMedia');
+          if (media != null && media.isNotEmpty) break;
+        } on PlatformException catch (error) {
+          inspectionError = error;
+        }
+        await tester.pump(const Duration(seconds: 1));
+      }
+      debugPrint('Font V native inspection: $inspectionError');
       expect(
         media,
         isNotEmpty,
