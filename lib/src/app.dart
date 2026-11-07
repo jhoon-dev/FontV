@@ -152,7 +152,7 @@ class _FontHomeState extends State<FontHome> {
                 overflow: TextOverflow.fade,
                 softWrap: false,
                 style: TextStyle(
-                  fontSize: 9,
+                  fontSize: 12,
                   letterSpacing: 1.9,
                   fontWeight: FontWeight.w600,
                   color: _muted,
@@ -249,7 +249,7 @@ class _FontHomeState extends State<FontHome> {
                       : context.l10n.catalogKicker,
                   style: TextStyle(
                     color: c.skin.color,
-                    fontSize: 10,
+                    fontSize: 12,
                     letterSpacing: 2.1,
                     fontWeight: FontWeight.w700,
                   ),
@@ -299,7 +299,7 @@ class _FontHomeState extends State<FontHome> {
                   textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
                     hintText: context.l10n.searchHint,
-                    hintStyle: const TextStyle(color: _muted, fontSize: 13),
+                    hintStyle: const TextStyle(color: _muted, fontSize: 14),
                     prefixIcon: const Icon(Icons.search_rounded, size: 21),
                     suffixIcon: c.query.isEmpty
                         ? null
@@ -380,7 +380,7 @@ class FontDetail extends StatelessWidget {
                       face.family.toUpperCase(),
                       style: TextStyle(
                         color: c.skin.color,
-                        fontSize: 10,
+                        fontSize: 12,
                         letterSpacing: 1.3,
                         fontWeight: FontWeight.w700,
                       ),
@@ -472,7 +472,7 @@ class FontDetail extends StatelessWidget {
                 avatar: const Icon(Icons.edit_outlined, size: 14),
                 label: Text(
                   context.l10n.customSample,
-                  style: TextStyle(fontSize: 11),
+                  style: TextStyle(fontSize: 12),
                 ),
                 onPressed: () => _editSample(context, c),
               ),
@@ -543,7 +543,7 @@ class FontDetail extends StatelessWidget {
                 icon: const Icon(Icons.restart_alt, size: 16),
                 label: Text(
                   context.l10n.resetPreview,
-                  style: TextStyle(fontSize: 11),
+                  style: TextStyle(fontSize: 12),
                 ),
               ),
               const Spacer(),
@@ -564,7 +564,7 @@ class FontDetail extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             context.l10n.fallbackHelp,
-            style: TextStyle(fontSize: 10, height: 1.7, color: _muted),
+            style: TextStyle(fontSize: 12, height: 1.7, color: _muted),
           ),
         ],
       );
@@ -593,7 +593,7 @@ class SettingsPanel extends StatelessWidget {
       Text(
         context.l10n.settingsKicker,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: 12,
           letterSpacing: 2,
           color: controller.skin.color,
           fontWeight: FontWeight.w700,
@@ -688,7 +688,7 @@ class SettingsPanel extends StatelessWidget {
                         const SizedBox(height: 10),
                         Text(
                           context.l10n.skinName(skin),
-                          style: const TextStyle(fontSize: 11),
+                          style: const TextStyle(fontSize: 12),
                         ),
                       ],
                     ),
@@ -751,7 +751,7 @@ class SettingsPanel extends StatelessWidget {
                 Text(
                   'FONT V / 2.0.0',
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: 12,
                     letterSpacing: 1.2,
                     color: controller.skin.color,
                     fontWeight: FontWeight.w600,
@@ -762,7 +762,7 @@ class SettingsPanel extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               'Developed by jhoon-dev',
-              style: TextStyle(fontSize: 11, height: 1.5, color: _muted),
+              style: TextStyle(fontSize: 12, height: 1.5, color: _muted),
             ),
           ],
         ),
@@ -772,7 +772,7 @@ class SettingsPanel extends StatelessWidget {
           padding: EdgeInsets.only(top: 20),
           child: Text(
             context.l10n.browserDemoFooter,
-            style: TextStyle(fontSize: 11, color: _muted, height: 1.7),
+            style: TextStyle(fontSize: 12, color: _muted, height: 1.7),
           ),
         ),
     ],
@@ -842,7 +842,7 @@ class _SampleChip extends StatelessWidget {
     message: tooltip,
     child: ActionChip(
       onPressed: onTap,
-      label: Text(label, style: const TextStyle(fontSize: 11)),
+      label: Text(label, style: const TextStyle(fontSize: 12)),
       side: const BorderSide(color: _line),
     ),
   );
@@ -880,7 +880,7 @@ class _ColorButton extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(fontSize: 11, color: _text),
+            style: const TextStyle(fontSize: 12, color: _text),
           ),
         ),
         const Icon(Icons.expand_more_rounded, size: 16, color: _muted),

@@ -46,6 +46,7 @@ android {
 
     buildTypes {
         release {
+            proguardFiles("proguard-rules.pro")
             // Without an upload key, release output remains unsigned.
             // Never silently publish a release signed with a debug certificate.
             signingConfig = signingConfigs.findByName("release")

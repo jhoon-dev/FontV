@@ -59,9 +59,10 @@ void main() {
       }
       expect(failure, isNull);
       expect(find.byType(AdWidget), findsOneWidget);
-      await tester.pump(const Duration(seconds: 5));
+      await tester.pump(const Duration(seconds: 2));
       expect(tester.takeException(), isNull);
       debugPrint('Font V smoke: native ad rendered');
+      await tester.pump(const Duration(seconds: 5));
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );

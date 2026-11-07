@@ -143,7 +143,7 @@ class _FontCatalogState extends State<FontCatalog> {
     final expandable = groups.where((group) => group.faces.length > 1).toList();
     final allExpanded = expandable.isNotEmpty && expandable.every(_isExpanded);
     final scaler = MediaQuery.textScalerOf(context);
-    final adExtent = 160 + scaler.scale(10) * 1.5;
+    final adExtent = 160 + scaler.scale(11) * 1.5;
     final showAds =
         c.tab == 0 &&
         !_searching &&
@@ -152,7 +152,7 @@ class _FontCatalogState extends State<FontCatalog> {
     _rowExtent = math.max(
       108,
       44 +
-          math.max(60, scaler.scale(13) * 2 * 1.4 + scaler.scale(11) * 1.4 + 6),
+          math.max(60, scaler.scale(15) * 2 * 1.4 + scaler.scale(12) * 1.4 + 6),
     );
     _rows = [];
     _sectionRows.clear();
@@ -238,7 +238,7 @@ class _FontCatalogState extends State<FontCatalog> {
                               allExpanded
                                   ? context.l10n.collapseAll
                                   : context.l10n.expandAll,
-                              style: const TextStyle(fontSize: 11),
+                              style: const TextStyle(fontSize: 12),
                             ),
                           ),
                       ],
@@ -268,26 +268,58 @@ class _FontCatalogState extends State<FontCatalog> {
                         child: widget.ads!.buildSlot(context, row.adSlot!),
                       );
                     }
+                    final card = row.face == null
+                        ? _FamilyCard(
+                            controller: c,
+                            group: row.group,
+                            expanded: _isExpanded(row.group),
+                            onTap: () => _toggle(row.group),
+                          )
+                        : _FontCard(
+                            controller: c,
+                            face: row.face!,
+                            selected: widget.selectedFontId == row.face!.id,
+                            nested: row.nested,
+                            onTap: () => widget.onOpen(row.face!),
+                          );
                     return Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        row.nested ? 34 : 24,
-                        0,
-                        52,
-                        10,
-                      ),
-                      child: row.face == null
-                          ? _FamilyCard(
-                              controller: c,
-                              group: row.group,
-                              expanded: _isExpanded(row.group),
-                              onTap: () => _toggle(row.group),
-                            )
-                          : _FontCard(
-                              controller: c,
-                              face: row.face!,
-                              selected: widget.selectedFontId == row.face!.id,
-                              onTap: () => widget.onOpen(row.face!),
+                      padding: const EdgeInsets.only(left: 24, right: 52),
+                      child: Stack(
+                        children: [
+                          if (row.nested) ...[
+                            Positioned(
+                              left: 10,
+                              top: 0,
+                              width: 2,
+                              bottom: row.face!.id == row.group.faces.last.id
+                                  ? _rowExtent / 2
+                                  : 0,
+                              child: ColoredBox(
+                                color: c.skin.color.withValues(alpha: .28),
+                              ),
                             ),
+                            Positioned(
+                              left: 10,
+                              top: (_rowExtent - 10) / 2,
+                              width: 14,
+                              height: 2,
+                              child: ColoredBox(
+                                color: c.skin.color.withValues(alpha: .28),
+                              ),
+                            ),
+                          ],
+                          Padding(
+                            padding: EdgeInsets.only(
+                              left: row.nested ? 24 : 0,
+                              bottom: 10,
+                            ),
+                            child: SizedBox(
+                              height: _rowExtent - 10,
+                              child: card,
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   }, childCount: _rows.length),
                 ),
@@ -428,7 +460,7 @@ class _AlphabetIndex extends StatelessWidget {
                               textScaler: TextScaler.noScaling,
                               style: TextStyle(
                                 color: color,
-                                fontSize: 10,
+                                fontSize: 11,
                                 fontWeight: active == label
                                     ? FontWeight.w800
                                     : FontWeight.w500,
@@ -469,7 +501,7 @@ class _FamilyCard extends StatelessWidget {
       expanded ? context.l10n.collapse : context.l10n.expand,
     ),
     child: Material(
-      color: Colors.white,
+      color: controller.skin.color.withValues(alpha: expanded ? .12 : .07),
       borderRadius: BorderRadius.circular(18),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -482,25 +514,20 @@ class _FamilyCard extends StatelessWidget {
             border: Border.all(
               color: expanded
                   ? controller.skin.color.withValues(alpha: .5)
-                  : _line,
+                  : controller.skin.color.withValues(alpha: .2),
             ),
           ),
           child: ExcludeSemantics(
             child: Row(
               children: [
-                SizedBox(
-                  width: 56,
-                  height: 60,
-                  child: FontPreview(
-                    service: controller.service,
-                    face: group.faces.first,
-                    text: 'Ag',
-                    size: 34,
-                    color: _ink,
-                    thumbnail: true,
-                  ),
+                Icon(
+                  expanded
+                      ? Icons.folder_open_rounded
+                      : Icons.folder_copy_rounded,
+                  size: 28,
+                  color: controller.skin.color,
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -511,7 +538,7 @@ class _FamilyCard extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 15,
                           fontWeight: FontWeight.w700,
                           height: 1.4,
                         ),
@@ -526,7 +553,7 @@ class _FamilyCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: _muted,
-                          fontSize: 11,
+                          fontSize: 12,
                           height: 1.4,
                         ),
                       ),
@@ -556,18 +583,20 @@ class _FontCard extends StatelessWidget {
     required this.face,
     required this.onTap,
     this.selected = false,
+    this.nested = false,
   });
   final FontController controller;
   final FontFace face;
   final VoidCallback onTap;
   final bool selected;
+  final bool nested;
 
   @override
   Widget build(BuildContext context) {
     final favorite = controller.favorites.contains(face.id);
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(nested ? 12 : 18),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         key: ValueKey('font:${face.id}'),
@@ -575,14 +604,14 @@ class _FontCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.fromLTRB(14, 16, 10, 14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(nested ? 12 : 18),
             border: Border.all(color: selected ? controller.skin.color : _line),
           ),
           child: Row(
             children: [
               ExcludeSemantics(
                 child: SizedBox(
-                  width: 56,
+                  width: nested ? 44 : 56,
                   height: 60,
                   child: FontPreview(
                     service: controller.service,
@@ -601,23 +630,23 @@ class _FontCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      face.name,
+                      nested ? face.style : face.name,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
-                        fontSize: 13,
+                        fontSize: 14,
                         height: 1.4,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      face.style,
+                      nested ? face.name : face.style,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: _muted,
-                        fontSize: 11,
+                        fontSize: 12,
                         height: 1.4,
                       ),
                     ),

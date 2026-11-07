@@ -198,7 +198,7 @@ class _NativeAdCardState extends State<NativeAdCard> {
               context.l10n.adLabel,
               style: const TextStyle(
                 color: Color(0xFF78767E),
-                fontSize: 10,
+                fontSize: 11,
                 height: 1.5,
               ),
             ),
