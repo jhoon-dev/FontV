@@ -9,35 +9,25 @@ function Write-FontIcon([string]$Path, [int]$Size) {
     $graphics.SmoothingMode = [Drawing.Drawing2D.SmoothingMode]::AntiAlias
     $family = [Drawing.FontFamily]::new('Segoe UI')
     $format = [Drawing.StringFormat]::GenericTypographic
-    # Match actual visible heights and bottom edges, not font point sizes.
-    $paths = @()
-    foreach ($text in @('font', 'V')) {
-        $glyphs = [Drawing.Drawing2D.GraphicsPath]::new()
-        $glyphs.AddString($text, $family, [int][Drawing.FontStyle]::Regular, 300, [Drawing.PointF]::new(0, 0), $format)
-        $bounds = $glyphs.GetBounds()
-        $scale = [single](224 / $bounds.Height)
-        $normalise = [Drawing.Drawing2D.Matrix]::new($scale, 0, 0, $scale, -$bounds.X * $scale, -$bounds.Y * $scale)
-        $glyphs.Transform($normalise)
-        $normalise.Dispose()
-        $paths += ,$glyphs
-    }
-    $wordWidth = $paths[0].GetBounds().Width
-    $letterWidth = $paths[1].GetBounds().Width
-    $left = [single]((1024 - $wordWidth - 40 - $letterWidth) / 2)
-    foreach ($pathIndex in @(0, 1)) {
-        $x = if ($pathIndex -eq 0) { $left } else { $left + $wordWidth + 40 }
-        $position = [Drawing.Drawing2D.Matrix]::new(1, 0, 0, 1, [single]$x, 400)
-        $paths[$pathIndex].Transform($position)
-        $graphics.FillPath([Drawing.Brushes]::White, $paths[$pathIndex])
-        $position.Dispose()
-    }
+    # A single type run guarantees the same face, weight, size and baseline.
+    # F and V share the capital height; neither letter is scaled separately.
+    $wordmark = [Drawing.Drawing2D.GraphicsPath]::new()
+    $wordmark.AddString('Font V', $family, [int][Drawing.FontStyle]::Regular, 300, [Drawing.PointF]::new(0, 0), $format)
+    $bounds = $wordmark.GetBounds()
+    $scale = [single]([Math]::Min(760 / $bounds.Width, 240 / $bounds.Height))
+    $left = [single]((1024 - $bounds.Width * $scale) / 2 - $bounds.X * $scale)
+    $top = [single]((1024 - $bounds.Height * $scale) / 2 - $bounds.Y * $scale)
+    $position = [Drawing.Drawing2D.Matrix]::new($scale, 0, 0, $scale, $left, $top)
+    $wordmark.Transform($position)
+    $graphics.FillPath([Drawing.Brushes]::White, $wordmark)
+    $position.Dispose()
     $output = [Drawing.Bitmap]::new($Size, $Size, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
     $scaled = [Drawing.Graphics]::FromImage($output)
     $scaled.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
     $scaled.DrawImage($bitmap, 0, 0, $Size, $Size)
     [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($Path)) | Out-Null
     $output.Save($Path, [Drawing.Imaging.ImageFormat]::Png)
-    $scaled.Dispose(); $output.Dispose(); $format.Dispose(); $family.Dispose(); $paths[0].Dispose(); $paths[1].Dispose(); $graphics.Dispose(); $bitmap.Dispose()
+    $scaled.Dispose(); $output.Dispose(); $format.Dispose(); $family.Dispose(); $wordmark.Dispose(); $graphics.Dispose(); $bitmap.Dispose()
 }
 
 $iconsPath = Join-Path $fontProjectRoot 'ios/Runner/Assets.xcassets/AppIcon.appiconset'
