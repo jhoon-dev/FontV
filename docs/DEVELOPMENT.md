@@ -50,7 +50,7 @@ iOS는 `UIFont.familyNames`와 `fontNames(forFamilyName:)`를 사용한다. Andr
 
 ## iOS 신규 배포
 
-번들 ID는 **`app.toolmoa.fontv`**다. 앱 버전은 2.0.0, 빌드 번호는 2다. 기존 Font V와 다른 앱 ID이므로 새 App ID와 App Store Connect 앱 등록이 필요하며, 이전 앱의 1.1 초안을 사용하지 않는다. 기존 앱의 판매 중단이나 기록 제거는 이 코드 변경만으로 실행되지 않는다.
+번들 ID는 **`app.toolmoa.fontv`**다. 앱 버전은 2.0.0, 최초 내부 테스트 빌드 번호는 2다. 새 App ID와 App Store Connect 앱 `Font V - ToolMoa`(Apple ID `6831850547`)를 등록했다. 이전 앱의 1.1 초안은 사용하지 않는다. 기존 앱의 판매 중단이나 기록 제거는 별도 작업이다.
 
 Mac에서 다음 작업이 필요하다.
 
@@ -60,17 +60,21 @@ Mac에서 다음 작업이 필요하다.
 4. 고유 빌드 번호와 최신 스토어 요구사항을 확인하고 Archive/TestFlight로 검증한다.
 5. 개인정보·연령 등급·지원 URL·신규 스크린샷과 버전 설명을 준비한 뒤 심사에 제출한다.
 
-Windows에서는 Xcode/Swift iOS 컴파일 및 실제 iPhone 실행을 검증할 수 없다. 포함한 GitHub Actions의 macOS 작업은 저장소에 올려 실행하면 서명 없이 시뮬레이터 빌드를 검증한다. 이 워크플로는 아직 원격 실행하지 않았다.
+Windows에서는 Xcode/Swift iOS 컴파일 및 실제 iPhone 실행을 검증할 수 없다. 서명 빌드는 PM Canvas GitHub 저장소의 `Font V TestFlight` 수동 워크플로와 기존 `desktop-mac-store` 보호 환경을 재사용한다. 기존 Apple Distribution 인증서와 App Store Connect API 키를 사용하고, 프로비저닝 프로필은 Font V App ID용으로 별도 생성·검증한다. 현재 API 키는 프로필 생성 POST 권한이 없어 Apple Developer 화면에서 `Font V ToolMoa App Store`를 발급했다. 프로필 만료·인증서 교체 시 같은 방식으로 새 프로필을 준비한다. `tool/ios_ci.mjs`가 분석·테스트·IPA 빌드·Apple 검증 및 업로드·내부 그룹 배포를 수행한다. 프로덕션 심사는 제출하지 않는다.
+
+PM Canvas는 공개 저장소이므로 Font V 소스를 평문으로 올리지 않는다. 먼저 Font V 변경을 GitLab에 커밋한 뒤 `node tool/package_ios_ci.mjs <PMCanvas>/.github/ci/fontv-source.enc.json`으로 정확한 Git 커밋의 ZIP을 AES-256-GCM으로 암호화한다. `.local/ci/source-key.txt`는 Git에 넣지 않고 보호 환경의 `FONTV_SOURCE_KEY`로만 전달한다. PM Canvas에는 암호화 파일 변경 PR을 만들고 필수 검사를 통과해 병합한 뒤, 정확한 `source_commit`과 고유 `build_number`로 실행한다. 빌드 소스·임시 키체인·프로필은 실행 후 지운다.
+
+공개 Actions에는 암호화된 진단과 비밀값 없는 상태 JSON만 남긴다. `FontV-encrypted-result` 아티팩트를 다운로드한 뒤 Font V 작업 폴더에서 `node tool/read_ci_diagnostics.mjs <다운로드 경로>/diagnostics.enc.json`으로 확인한다. 복호화한 로그는 로컬에만 보관하고 공개 이슈나 PR에 그대로 붙이지 않는다. 실행 결과와 실기기 검증 여부는 `VERIFICATION.md`를 따른다.
 
 ## Android 배포
 
-패키지 ID는 `app.toolmoa.fontv`다. Play Console에서 새 앱으로 등록한다. iOS 번들 ID와 같은 문자열이지만 플랫폼별 등록과 서명은 별개다.
+패키지 ID는 `app.toolmoa.fontv`다. Play Console에 무료 앱으로 새로 등록했고 `2.0.0 (2)`를 내부 테스트 트랙에 게시했다. iOS 번들 ID와 같은 문자열이지만 플랫폼별 등록과 서명은 별개다.
 
 개발 APK는 디버그 서명이다. 출시용은 `android/key.properties.example`을 `android/key.properties`로 복사하고 업로드 키를 로컬에서 지정한 뒤 `flutter build appbundle --release`로 만든다. 키가 없으면 출시 빌드는 서명하지 않으며 디버그 키로 대체하지 않는다. 키 파일·비밀번호·실제 key.properties는 Git에 넣지 않는다.
 
 ## 소스 보관
 
-앱스토어 등록에 소스가 백업되는 것은 아니다. 프로젝트 전체와 잠금 파일을 비공개 Git 원격 저장소에 보관하고, 별도로 백업한다. iOS 서명 자료와 Android 업로드 키는 안전한 별도 위치에 백업한다. 이 작업은 원격 저장소 생성이나 소스 업로드를 자동으로 수행하지 않는다.
+앱스토어 등록에 소스가 백업되는 것은 아니다. 프로젝트 전체와 잠금 파일은 연결된 비공개 GitLab 저장소에 커밋·푸시하고, 별도로 백업한다. iOS 서명 자료, Android 업로드 키와 CI 소스 암호화 키는 안전한 별도 위치에 백업한다. 이 자료를 소스 ZIP이나 Git에 포함하지 않는다.
 
 ## API 근거
 

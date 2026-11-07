@@ -40,3 +40,12 @@
 - 기존 스토어 앱 제거와 새 앱 등록·출시는 아직 실행하지 않았다. 새 ID는 기존 iOS 앱 업데이트에 사용할 수 없다.
 
 현재 APK SHA-256: `79BDE4E60091A86B8E97DB95D29F01F01237435579F9B5CC80B207C13C4DA7B6`
+
+## 2026-11-07 내부 테스트 준비
+
+- Google Play에 무료 앱 `app.toolmoa.fontv`를 등록했다. 새 업로드 키로 서명한 AAB `2.0.0 (2)`가 Play Console 검증을 통과했고 내부 테스트 트랙에 게시됐다. 현재 계정 한 명을 포함하는 전용 테스터 목록을 연결한 뒤 트랙이 활성 상태임을 확인했다.
+- 테스트 참여: https://play.google.com/apps/internaltest/4701307094679828370
+- 출시 AAB SHA-256: `d8de2e23e031ce621915b88d62e2a239e5e4c28a6aef9d617c85c92761a39dde`
+- Android 업로드 키와 비밀번호는 `.local/signing/` 및 무시된 `android/key.properties`에만 보관했다. 안전한 별도 백업이 필요하다.
+- Apple Developer에 명시적 App ID를 등록하고 App Store Connect에 `Font V - ToolMoa`(Apple ID `6831850547`)를 새로 만들었다. `ToolMoa Internal` 그룹과 현재 계정 테스터를 등록했다. 기존 Font V는 아직 제거하지 않았다.
+- PM Canvas의 보호된 macOS CI 재사용을 위한 PR: https://github.com/jhoon-dev/PMCanvas/pull/48 . 공개 저장소에는 암호화된 소스만 전달하며 빌드 진단도 암호화한다. 인증서와 API 키는 기존 보호 환경을 벗어나지 않는다. iOS 빌드·업로드 결과는 아래에 별도로 기록한다.
