@@ -177,7 +177,8 @@ class _NativeAdCardState extends State<NativeAdCard> {
         onAdLoaded: (_) {
           if (mounted) setState(() => _loaded = true);
         },
-        onAdFailedToLoad: (ad, _) {
+        onAdFailedToLoad: (ad, error) {
+          if (kDebugMode) debugPrint('Font V native ad failed: $error');
           unawaited(ad.dispose());
           _ad = null;
           if (mounted) widget.onUnavailable();
