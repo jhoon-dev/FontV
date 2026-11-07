@@ -11,7 +11,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 // This isolated SDK smoke test always uses Google's official test ad unit.
 // The shipped app goes through UMP in AdsController before requesting ads.
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
     'native media is at least 120 x 120 at the minimum feed width',
     (tester) async {
@@ -45,11 +45,7 @@ void main() {
                 child: NativeAdCard(
                   adUnitId: defaultTargetPlatform == TargetPlatform.iOS
                       ? 'ca-app-pub-3940256099942544/2521693316'
-                      // Google's Android video demo currently returns a malformed
-                      // response (SDK error 0: click actions not specified).
-                      // The standard native demo uses the same MediaView layout;
-                      // iOS above still exercises an actual video creative.
-                      : 'ca-app-pub-3940256099942544/2247696110',
+                      : 'ca-app-pub-3940256099942544/1044960115',
                   onUnavailable: () =>
                       failure = 'Official test native ad failed to load',
                 ),
@@ -95,6 +91,13 @@ void main() {
         expect(frame['visible'], true);
       }
       debugPrint('Font V smoke: native ad rendered');
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        await binding.convertFlutterSurfaceToImage();
+        await tester.pump();
+      }
+      await binding.takeScreenshot(
+        'font-v-${defaultTargetPlatform.name}-native-video',
+      );
       await tester.pump(const Duration(seconds: 5));
     },
     timeout: const Timeout(Duration(minutes: 3)),
