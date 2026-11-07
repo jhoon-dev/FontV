@@ -18,9 +18,44 @@ const keyId=required('ASC_KEY_ID'), issuer=required('ASC_ISSUER_ID');
 const p8=Buffer.from(required('ASC_KEY_BASE64'),'base64');
 const privateKey=createPrivateKey(p8);
 const token=()=>{const h=Buffer.from(JSON.stringify({alg:'ES256',kid:keyId,typ:'JWT'})).toString('base64url');const now=Math.floor(Date.now()/1000);const p=Buffer.from(JSON.stringify({iss:issuer,iat:now,exp:now+300,aud:'appstoreconnect-v1'})).toString('base64url');return `${h}.${p}.${sign('sha256',Buffer.from(`${h}.${p}`),{key:privateKey,dsaEncoding:'ieee-p1363'}).toString('base64url')}`;};
-async function api(route,method='GET',body){const u=new URL(route,'https://api.appstoreconnect.apple.com');if(u.origin!=='https://api.appstoreconnect.apple.com'||!u.pathname.startsWith('/v1/'))throw Error('Invalid API origin');const res=await fetch(u,{method,redirect:'error',signal:AbortSignal.timeout(30000),headers:{Authorization:`Bearer ${token()}`,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});if(!res.ok)throw Error(`Apple API ${method} ${u.pathname}: ${res.status} ${await res.text()}`);return res.status===204?{}:res.json();}
+async function api(route,method='GET',body){
+  const u=new URL(route,'https://api.appstoreconnect.apple.com');
+  if(u.origin!=='https://api.appstoreconnect.apple.com'||!u.pathname.startsWith('/v1/'))throw Error('Invalid API origin');
+  for(let attempt=0;attempt<4;attempt++){
+    let res;
+    try{res=await fetch(u,{method,redirect:'error',signal:AbortSignal.timeout(30000),headers:{Authorization:`Bearer ${token()}`,'Content-Type':'application/json',Connection:'close'},body:body?JSON.stringify(body):undefined});}
+    catch(e){if(method!=='GET'||attempt===3)throw e;await new Promise(r=>setTimeout(r,2000*(attempt+1)));continue;}
+    if(method==='GET'&&(res.status===429||res.status>=500)&&attempt<3){await res.text();await new Promise(r=>setTimeout(r,2000*(attempt+1)));continue;}
+    if(!res.ok)throw Error(`Apple API ${method} ${u.pathname}: ${res.status} ${await res.text()}`);
+    return res.status===204?{}:res.json();
+  }
+}
 async function all(route){const rows=[];while(route){const res=await api(route);rows.push(...res.data);route=res.links?.next;}return rows;}
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
+async function distribute(){
+  const apps=await all('/v1/apps?'+new URLSearchParams({'filter[bundleId]':bundle}));if(apps.length!==1)throw Error('App mismatch');
+  const groups=await all(`/v1/apps/${apps[0].id}/betaGroups?limit=200`);
+  const group=groups.find(g=>g.attributes.name==='ToolMoa Internal'&&g.attributes.isInternalGroup);if(!group)throw Error('Internal group missing');
+  for(let i=0;i<50;i++){
+    const res=await api('/v1/builds?'+new URLSearchParams({'filter[app]':apps[0].id,'filter[version]':build,include:'preReleaseVersion',limit:'200'}));
+    const b=res.data.find(b=>res.included?.some(p=>p.id===b.relationships.preReleaseVersion.data.id&&p.attributes.version===version&&p.attributes.platform==='IOS'));
+    if(b&&['INVALID','FAILED'].includes(b.attributes.processingState))throw Error('Apple processing rejected build');
+    if(b?.attributes.processingState==='VALID'){
+      const relation=`/v1/betaGroups/${group.id}/relationships/builds`;
+      let linked=(await all(relation+'?limit=200')).some(x=>x.id===b.id);
+      if(!linked&&!group.attributes.hasAccessToAllBuilds){await api(relation,'POST',{data:[{type:'builds',id:b.id}]});linked=true;}
+      const state=(await api(`/v1/builds/${b.id}/buildBetaDetail`)).data.attributes.internalBuildState;
+      if(linked&&['READY_FOR_BETA_TESTING','IN_BETA_TESTING'].includes(state))return {success:true,app:apps[0].id,build:b.id,version,buildNumber:build,group:group.id,state};
+      if(state==='MISSING_EXPORT_COMPLIANCE')throw Error('Export compliance required');
+    }
+    if(i===49)throw Error('Apple processing timeout; upload remains available');
+    await pause(30000);
+  }
+}
+if(process.env.FONTV_DISTRIBUTE_ONLY==='true'){
+  try{console.log(JSON.stringify(await distribute()));}finally{fs.rmSync(temp,{recursive:true,force:true});}
+  process.exit(0);
+}
 let installedProfile, keychainCreated=false, oldSearch=[];
 const keychain=path.join(temp,'signing.keychain-db');
 try {
@@ -78,24 +113,7 @@ plistlib.dump(dict(method='app-store-connect',destination='export',signingStyle=
     try{console.log(run('xcrun',['altool',action,'--type','ios','--file',ipa,'--apiKey',keyId,'--apiIssuer',issuer],{env:{...process.env,API_PRIVATE_KEYS_DIR:apiDir}}));}catch(e){console.error(e.stdout?.toString(),e.stderr?.toString());throw Error(`Apple ${action} failed`);}
   }
   console.log('Uploaded. Waiting for Apple processing.');
-  const apps=await all('/v1/apps?'+new URLSearchParams({'filter[bundleId]':bundle}));if(apps.length!==1)throw Error('App mismatch');
-  const groups=await all(`/v1/apps/${apps[0].id}/betaGroups?limit=200`);
-  const group=groups.find(g=>g.attributes.name==='ToolMoa Internal'&&g.attributes.isInternalGroup);if(!group)throw Error('Internal group missing');
-  for(let i=0;i<50;i++){
-    const res=await api('/v1/builds?'+new URLSearchParams({'filter[app]':apps[0].id,'filter[version]':build,include:'preReleaseVersion',limit:'200'}));
-    const b=res.data.find(b=>res.included?.some(p=>p.id===b.relationships.preReleaseVersion.data.id&&p.attributes.version===version&&p.attributes.platform==='IOS'));
-    if(b&&['INVALID','FAILED'].includes(b.attributes.processingState))throw Error('Apple processing rejected build');
-    if(b?.attributes.processingState==='VALID'){
-      const relation=`/v1/betaGroups/${group.id}/relationships/builds`;
-      let linked=(await all(relation+'?limit=200')).some(x=>x.id===b.id);
-      if(!linked&&!group.attributes.hasAccessToAllBuilds){await api(relation,'POST',{data:[{type:'builds',id:b.id}]});linked=true;}
-      const state=(await api(`/v1/builds/${b.id}/buildBetaDetail`)).data.attributes.internalBuildState;
-      if(linked&&['READY_FOR_BETA_TESTING','IN_BETA_TESTING'].includes(state)){console.log(JSON.stringify({success:true,app:apps[0].id,build:b.id,version,buildNumber:build,group:group.id,state}));break;}
-      if(state==='MISSING_EXPORT_COMPLIANCE')throw Error('Export compliance required');
-    }
-    if(i===49)throw Error('Apple processing timeout; upload remains available');
-    await pause(30000);
-  }
+  console.log(JSON.stringify(await distribute()));
 } finally {
   if(installedProfile)fs.rmSync(installedProfile,{force:true});
   if(keychainCreated){try{run('security',['list-keychains','-d','user','-s',...oldSearch]);run('security',['delete-keychain',keychain]);}catch{}}

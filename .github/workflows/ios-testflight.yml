@@ -1,0 +1,52 @@
+name: iOS TestFlight
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: Unique iOS build number
+        required: true
+        default: '3'
+        type: string
+      distribute_only:
+        description: Verify or distribute an existing build without uploading again
+        default: false
+        type: boolean
+permissions:
+  contents: read
+concurrency:
+  group: fontv-testflight
+  cancel-in-progress: false
+jobs:
+  internal-test:
+    if: github.ref == 'refs/heads/main'
+    runs-on: macos-latest
+    timeout-minutes: 75
+    environment: apple-testflight
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        if: ${{ !inputs.distribute_only }}
+        with:
+          flutter-version: '3.44.2'
+          channel: stable
+      - name: Sign, upload and enable internal testing
+        run: node tool/run_ios_ci.mjs
+        env:
+          FONTV_BUILD_NUMBER: ${{ inputs.build_number }}
+          FONTV_DISTRIBUTE_ONLY: ${{ inputs.distribute_only }}
+          FONTV_DIAGNOSTICS_KEY: ${{ secrets.FONTV_DIAGNOSTICS_KEY }}
+          MAS_CSC_LINK: ${{ secrets.MAS_CSC_LINK }}
+          MAS_CSC_KEY_PASSWORD: ${{ secrets.MAS_CSC_KEY_PASSWORD }}
+          ASC_KEY_BASE64: ${{ secrets.ASC_KEY_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: FontV-iOS-encrypted-result
+          path: artifacts/ci/
+          retention-days: 7
+          if-no-files-found: warn
