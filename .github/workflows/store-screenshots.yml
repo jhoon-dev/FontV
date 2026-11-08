@@ -40,7 +40,7 @@ jobs:
             (sleep 420; xcrun simctl io "$DEVICE" screenshot "artifacts/startup-$FORM.png"; xcrun simctl spawn "$DEVICE" log show --last 5m --style compact --predicate 'process == "Runner"' > "artifacts/startup-$FORM.log") &
             DIAGNOSTICS_PID=$!
             trap 'kill "$DIAGNOSTICS_PID" 2>/dev/null || true' EXIT
-            flutter drive --no-build --verbose --disable-dds --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d "$DEVICE" 2>&1 | tee "artifacts/store-$FORM.log"
+            flutter drive --use-application-binary=build/ios/iphonesimulator/Runner.app --verbose --disable-dds --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d "$DEVICE" 2>&1 | tee "artifacts/store-$FORM.log"
             kill "$DIAGNOSTICS_PID" 2>/dev/null || true
             mkdir -p "artifacts/store/$FORM"
             mv artifacts/screenshots/*.png "artifacts/store/$FORM/"
