@@ -1,4 +1,4 @@
-# Font V ad readiness — November 7, 2026
+# Font V ad readiness — November 8, 2026
 
 The Android and iOS AdMob registrations and native units belong only to Font V. The existing Ultra Notification app is separate.
 
@@ -10,6 +10,7 @@ The Android and iOS AdMob registrations and native units belong only to Font V. 
 - Authorized seller file: https://toolmoa.app/app-ads.txt
 - Public support contact: contact@toolmoa.app
 - AdMob European consent message `Font V · European consent` is published for the two Font V apps, with consent, do-not-consent and manage-options choices. Default language is English; the available Google message translations do not include Korean. This does not change the app's English/Korean interface.
+- AdMob US message `Font V · US privacy choices` is published for the same two apps only, with sale/sharing opt-out choices and Google's applicable-state targeting. The existing UMP integration presents the messages and privacy options.
 - Play's privacy policy, no-login declaration, Tools category and developer website/contact have been saved. These do not publish the app itself.
 
 ## MediaView correction
@@ -17,6 +18,8 @@ The Android and iOS AdMob registrations and native units belong only to Font V. 
 Small native templates have been replaced with medium templates. The native view reserves 400 logical pixels, plus an independently scaled advertising label. iOS's medium media area is 16:9; Android's medium template reserves 190dp for media. The integration test loads Google's official native ads and measures the actual native MediaView, rather than the Flutter card.
 
 Both official video creatives loaded and the actual visible MediaViews passed in [native smoke run 42346893552](https://github.com/jhoon-dev/FontV/actions/runs/42346893552): iOS **320 × 180pt**, Android **310.1 × 190.1dp**. Android's install-ad demo requests had failed in the Google APIs emulator without Play Store (`Incorrect native ad response. Click actions were not properly specified`); the Play Store image resolves this. iOS captures the native hierarchy through the integration driver. Android captures its native video surface through adb before Flutter surface conversion, which would hide texture-composed platform views. Buffered end-of-test console output cannot reliably trigger an external screenshot; the capture flow uses live driver output.
+
+[Run 42348362042](https://github.com/jhoon-dev/FontV/actions/runs/42348362042) also passed with live compositor frames enabled in the integration test. The Android capture visibly contains the native video, ad text and CTA.
 
 ## Release build 9
 
@@ -29,6 +32,13 @@ Both official video creatives loaded and the actual visible MediaViews passed in
 
 Both apps still need public store listings, matching developer website domains, app-ads.txt verification and AdMob readiness approval. Internal TestFlight/Play releases alone do not satisfy the public-store requirement. Store metadata, required disclosures, age ratings, screenshots and public review must be completed before linking the new listings; do not substitute the original Font V Apple ID or the unrelated notification app.
 
-Google Play's IARC questionnaire explicitly treats use as acceptance of its terms. The user approved the questionnaire and submission in this session. IARC is complete (Everyone/PEGI 3/3+ depending on region); the separate target audience is teens 13+ and adults, since the app is not designed for children. The user supplied the App Store review phone number and email, and those are saved only in App Store Connect, not this public repository. The iOS 2.0.0 draft contains Korean metadata, support/marketing/privacy URLs and build 9, but is not submitted for public review.
+Google Play's IARC questionnaire explicitly treats use as acceptance of its terms. The user approved the questionnaire and submission in this session. IARC is complete (Everyone/PEGI 3/3+ depending on region); the separate target audience is teens 13+ and adults, since the app is not designed for children. The user supplied the App Store review phone number and email, and those are saved only in App Store Connect, not this public repository.
+
+## Public review progress
+
+- Google Play: production build `9 (2.0.0)` and 178 countries/regions are configured. Korean listing text, approved icon, feature graphic and two actual Android screenshots are saved. The manual Data safety declaration and advertising ID declaration are complete. **Twelve changes were submitted to Google for public review on November 8**; the publishing overview confirms they are under review. Managed publishing is disabled, so approval permits automatic publication.
+- Apple: 175 countries/regions and free pricing are saved. Category, content rights and age questionnaire (4+, ads present) are complete. The seven applicable ad-SDK data types and their purposes/linking/tracking answers were published with the user's explicit confirmation. The actual medium Dynamic Island iPhone screenshots are registered at 1206 × 2622. The 2.0.0 draft contains build 9, Korean metadata and support/marketing/privacy URLs; **the required 13-inch iPad screenshots still block public app review submission**.
+- Apple EU DSA: the user supplied contact details and uploaded the requested name/address documents directly to Apple. The business compliance table confirms **In Review** for 27 EU countries. Contact details and verification documents are not stored in this repository.
+- AdMob: both new store IDs were searched separately; neither public listing can yet be found. App readiness review and app-ads.txt verification cannot be represented as submitted or approved while those listings are unavailable. The published seller file is ready for crawling once the store's developer website is discoverable.
 
 Sources: [native ad media policy](https://support.google.com/admob/answer/6329638?hl=en), [app readiness](https://support.google.com/admob/answer/10564477), [app verification](https://support.google.com/admob/answer/14538460), [app-ads.txt setup](https://support.google.com/admob/answer/9363762), [official demo units](https://developers.google.com/admob/android/test-ads).
