@@ -4,13 +4,17 @@ import org.gradle.api.initialization.resolve.RepositoriesMode
 
 def settingsRepositoriesOnly = false
 def compilerMirror = { repositories ->
-    repositories.maven {
+    def mirror = repositories.maven {
         name = 'FontVMavenCentralCompilerMirror'
         url = 'https://maven-central.storage-download.googleapis.com/maven2'
         content {
             includeModule('org.jetbrains.kotlin', 'kotlin-compiler-embeddable')
         }
     }
+    // Root allprojects blocks may already have added Central to subprojects.
+    // Explicit priority is needed before their compiler classpaths resolve.
+    repositories.remove(mirror)
+    repositories.addFirst(mirror)
 }
 gradle.beforeSettings { settings ->
     compilerMirror(settings.dependencyResolutionManagement.repositories)
