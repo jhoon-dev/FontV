@@ -24,7 +24,7 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: Capture actual iPhone and iPad font catalogs
-        timeout-minutes: 30
+        timeout-minutes: 20
         run: |
           set -euo pipefail
           mkdir -p artifacts
@@ -33,7 +33,13 @@ jobs:
             xcrun simctl boot "$DEVICE"
             xcrun simctl bootstatus "$DEVICE" -b
             xcrun simctl status_bar "$DEVICE" override --time '9:41' --dataNetwork wifi --wifiMode active --wifiBars 3 --batteryState charged --batteryLevel 100
-            flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d "$DEVICE" 2>&1 | tee "artifacts/store-$FORM.log"
+            echo "$DEVICE" > artifacts/store-device.txt
+            # Keep startup diagnostics even if the VM-service attachment stalls.
+            (sleep 420; xcrun simctl io "$DEVICE" screenshot "artifacts/startup-$FORM.png"; xcrun simctl spawn "$DEVICE" log show --last 5m --style compact --predicate 'process == "Runner"' > "artifacts/startup-$FORM.log") &
+            DIAGNOSTICS_PID=$!
+            trap 'kill "$DIAGNOSTICS_PID" 2>/dev/null || true' EXIT
+            flutter drive --verbose --disable-dds --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d "$DEVICE" 2>&1 | tee "artifacts/store-$FORM.log"
+            kill "$DIAGNOSTICS_PID" 2>/dev/null || true
             mkdir -p "artifacts/store/$FORM"
             mv artifacts/screenshots/*.png "artifacts/store/$FORM/"
             xcrun simctl shutdown "$DEVICE"
