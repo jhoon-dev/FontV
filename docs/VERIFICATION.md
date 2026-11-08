@@ -1,5 +1,15 @@
 # Font V 검증 기록
 
+## 2026-11-08 공통 헤더 및 내부 테스트 빌드 11
+
+- 소스 `6825023`에서 모든 플랫폼의 메인 헤더를 하나의 `Font V` 텍스트로 통일했다. ToolMoa 표기를 제거하고 Font와 V에 같은 서체·굵기·크기·테마 색상을 적용했다. 버전은 `2.0.0 (11)`이며 기존 Font V 전용 운영 광고 설정을 유지했다.
+- 정적 분석 오류·린트 없음, 기존 단위·위젯 테스트 30개 통과, 웹 출시 빌드 성공.
+- [iOS 서명·검증·업로드 CI](https://github.com/jhoon-dev/FontV/actions/runs/42471299914)가 성공했다. Apple 빌드 `cf2c214c-e92b-4b57-af6a-392b0948be86`는 `IN_BETA_TESTING`이며 기존 `ToolMoa Internal` 그룹에서 `2.0.0 (11)`의 ‘테스트 중’을 확인했다. 헤더와 테마 색상 확인을 위한 한국어 테스트 안내를 저장했다.
+- [Android 서명·출시 시작 검사 CI](https://github.com/jhoon-dev/FontV/actions/runs/42471303867)가 성공했다. 최적화된 출시 APK를 에뮬레이터에서 두 차례 실행했고, 실제 앱 캡처에서 같은 굵기·색상의 Font V 헤더와 ToolMoa 제거를 확인했다.
+- AAB SHA-256: `94a5944494472ebe6c4e2fde946e2cd7a2cecc1a6c2c602ad76f4be83b846f84`.
+- Play Console이 버전 코드 11, 버전 이름 2.0.0, 최소 API 29, 타겟 SDK 36을 수락했다. 지원 기기 감소는 없었다. 한국어·영어 출시 노트와 함께 기존 내부 트랙에 게시한 뒤 ‘최신 출시 버전: 11 (2.0.0)’, ‘활성’, ‘내부 테스터에게 제공됨’을 확인했다. [기존 내부 테스트 참여 링크](https://play.google.com/apps/internaltest/4701307094679828370)를 유지한다.
+- App Store 공개 심사와 Play 프로덕션 트랙은 변경하지 않았다. 스토어 상태 증빙은 무시된 `artifacts/internal-build11/`, Android 실행 캡처는 `artifacts/ci-android-11-startup/android-startup.png`에 보관한다. 실제 iPhone/iPad 화면을 캡처한 검증은 아니다.
+
 ## 2026-11-08 새 기능 포함 내부 테스트 빌드 10
 
 - 소스 `9de6789`에서 `2.0.0 (10)`을 서명 빌드했다. 폰트 비교, 한글 필터·문자 검사, PNG 저장·공유, 컬렉션, 자간·행간·정렬, TTF/OTF 가져오기를 모두 포함한다. 기존 Font V 전용 운영 광고 설정을 사용했다.
