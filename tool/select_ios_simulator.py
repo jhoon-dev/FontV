@@ -9,7 +9,7 @@ for runtime, devices in json.load(sys.stdin)["devices"].items():
     for device in devices:
         name = device["name"]
         matches = (
-            name.startswith("iPhone") and "Max" in name
+            name.startswith("iPhone") and "Pro" in name and "Max" not in name
             if form == "iphone"
             else "iPad Pro" in name and ("13-inch" in name or "12.9" in name)
         )
