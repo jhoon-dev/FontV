@@ -141,6 +141,19 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       }
       expect(find.byKey(const Key('export-image-preview')), findsOneWidget);
+      final decodedPreview = find.descendant(
+        of: find.byKey(const Key('export-image-preview')),
+        matching: find.byType(RawImage),
+      );
+      for (var i = 0; i < 100; i++) {
+        if (decodedPreview.evaluate().isNotEmpty &&
+            tester.widget<RawImage>(decodedPreview).image != null) {
+          break;
+        }
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(tester.widget<RawImage>(decodedPreview).image, isNotNull);
+      await tester.pump(const Duration(milliseconds: 200));
       expect(tester.takeException(), isNull);
       await binding.takeScreenshot(
         'font-v-${defaultTargetPlatform.name}-export',

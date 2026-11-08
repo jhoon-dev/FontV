@@ -206,6 +206,12 @@ class _ExportSheetState extends State<_ExportSheet> {
                           snapshot.data!,
                           key: const Key('export-image-preview'),
                           fit: BoxFit.contain,
+                          frameBuilder: (context, child, frame, synchronous) =>
+                              synchronous || frame != null
+                              ? child
+                              : const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
                         ),
                       );
                     },
