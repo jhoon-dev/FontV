@@ -14,6 +14,9 @@ class FontPreview extends StatefulWidget {
     required this.size,
     required this.color,
     this.thumbnail = false,
+    this.letterSpacing = 0,
+    this.lineHeight = 1.35,
+    this.alignment = PreviewAlignment.left,
   });
   final FontService service;
   final FontFace face;
@@ -21,6 +24,9 @@ class FontPreview extends StatefulWidget {
   final double size;
   final Color color;
   final bool thumbnail;
+  final double letterSpacing;
+  final double lineHeight;
+  final PreviewAlignment alignment;
   @override
   State<FontPreview> createState() => _FontPreviewState();
 }
@@ -61,6 +67,11 @@ class _FontPreviewState extends State<FontPreview> {
         child: Text(
           widget.text,
           maxLines: widget.thumbnail ? 1 : null,
+          textAlign: switch (widget.alignment) {
+            PreviewAlignment.left => TextAlign.left,
+            PreviewAlignment.center => TextAlign.center,
+            PreviewAlignment.right => TextAlign.right,
+          },
           style: TextStyle(
             fontWeight: widget.face.id == 'demo:bold'
                 ? FontWeight.bold
@@ -69,7 +80,8 @@ class _FontPreviewState extends State<FontPreview> {
                 ? FontStyle.italic
                 : FontStyle.normal,
             fontSize: widget.size,
-            height: 1.35,
+            height: widget.lineHeight,
+            letterSpacing: widget.letterSpacing,
             color: widget.color,
           ),
         ),
@@ -89,6 +101,9 @@ class _FontPreviewState extends State<FontPreview> {
             width: bounds.maxWidth,
             height: bounds.maxHeight,
             scale: MediaQuery.devicePixelRatioOf(context).clamp(1, 3),
+            letterSpacing: widget.letterSpacing,
+            lineHeight: widget.lineHeight,
+            alignment: widget.alignment,
           ),
         );
         if (_failed) {

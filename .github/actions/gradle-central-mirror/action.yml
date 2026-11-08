@@ -1,0 +1,15 @@
+name: Configure Android build downloads
+description: Cache verified Gradle and mirror compiler downloads for app and Flutter included builds
+runs:
+  using: composite
+  steps:
+    - name: Cache checksum-verified Gradle distribution
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 "$GITHUB_ACTION_PATH/cache-gradle.py"
+    - shell: bash
+      run: |
+        fontv_gradle_dir="${GRADLE_USER_HOME:-$HOME/.gradle}"
+        mkdir -p "$fontv_gradle_dir/init.d"
+        cp "$GITHUB_ACTION_PATH/central-mirror.init.gradle" "$fontv_gradle_dir/init.d/fontv-central-mirror.init.gradle"

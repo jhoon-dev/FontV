@@ -6,15 +6,17 @@
 
 ## 제품 범위
 
-기존 iOS Font V(Apple ID `899822294`)의 설명과 등록 스크린샷을 참고해 새로 구현한 Flutter 앱이다. 원본 소스를 복구한 프로젝트가 아니다. iOS와 Android에서 각 기기에 설치된 시스템 폰트를 탐색한다. 폰트 설치, 삭제, 기기 전체의 글꼴 변경은 하지 않는다.
+기존 iOS Font V(Apple ID `899822294`)의 설명과 등록 스크린샷을 참고해 새로 구현한 Flutter 앱이다. 원본 소스를 복구한 프로젝트가 아니다. iOS와 Android에서 각 기기에 설치된 시스템 폰트와 앱으로 가져온 폰트를 탐색한다. 시스템 폰트 설치·삭제나 기기 전체의 글꼴 변경은 하지 않는다.
 
 - 시스템 폰트 목록과 패밀리·이름·스타일 검색
 - 실제 OS 폰트로 그리는 영문·한글·숫자 미리보기와 직접 입력
 - 12–96pt 크기, 글자색·배경색, RGB·HEX 색상 입력
 - 즐겨찾기와 다섯 가지 테마(핑크·레드·그린·브라운·퍼플)
 - 기기 내부 설정 저장, 오프라인 동작, 태블릿 분할 화면
+- 2–4개 서체 비교, 자간·행간·정렬, 한글 필터·문자 지원 검사
+- 이름 있는 컬렉션, PNG 저장·공유, TTF/OTF 파일 가져오기
 
-UI는 기기 언어를 따라 영어·한국어로 표시하며 다른 언어는 영어로 표시한다. 설정에서 시스템 설정·English·한국어를 고를 수 있고 선택은 저장된다. ARB는 `lib/l10n/`에서 관리하며 `flutter gen-l10n`으로 생성한다. 폰트 파일 가져오기, 기기간 동기화, 상점 결제는 포함하지 않았다.
+UI는 기기 언어를 따라 영어·한국어로 표시하며 다른 언어는 영어로 표시한다. 설정에서 시스템 설정·English·한국어를 고를 수 있고 선택은 저장된다. ARB는 `lib/l10n/`에서 관리하며 `flutter gen-l10n`으로 생성한다. 기기간 동기화와 상점 결제는 포함하지 않았다.
 
 ## 목록 광고
 
@@ -65,7 +67,23 @@ iOS는 `UIFont.familyNames`와 `fontNames(forFamilyName:)`를 사용한다. Andr
 
 목록은 같은 패밀리의 Regular·Bold·Italic 등을 기본적으로 접어서 보여준다. 검색 시에는 일치하는 스타일만 묶고 자동으로 펼치며, 즐겨찾기에서는 저장한 스타일만 포함한다. 오른쪽 인덱스는 현재 목록에 존재하는 문자만 보여주며 탭과 세로 드래그를 지원한다. 묶음 펼침과 글자 확대에 맞춰 행 위치를 다시 계산해 중간 폰트 미리보기를 모두 만들지 않고 목표 문자로 이동한다. 아이콘은 기존 분홍 배경에 `Font V`를 한 줄로 배치한다. 한 번의 텍스트 윤곽 생성으로 동일한 서체·Regular 굵기·글자 크기·기준선을 적용하며, 글자를 따로 확대하지 않는다. `tool/generate_icons.ps1`에서 iOS·Android·웹 크기를 함께 생성한다.
 
+## 폰트 비교·컬렉션·파일 가져오기
+
+목록 상단의 비교 도구나 폰트 길게 누르기로 2–4개 서체를 선택한다. 비교 페이지는 같은 문장·크기·색상·자간·행간·정렬을 적용한다. 휴대폰은 2열, 넓은 화면은 최대 4열이며 폰트 이름이 길어져도 미리보기 시작 위치를 맞춘다. 비교 선택은 일시적이며, 이름 있는 컬렉션과 즐겨찾기·미리보기 설정은 기기 내부 SharedPreferences에 저장한다.
+
+`getHangulFonts`는 현대 한글 완성형 11,172자를 모두 포함하는 서체를 찾는다. `checkGlyphs`는 입력 문장의 고유 코드 포인트 중 누락된 문자를 반환한다. iOS는 정확한 CTFont의 문자 집합을, Android는 해당 Font/TTC 인덱스의 Unicode cmap format 4·12·13을 검사한다. 미리보기의 OS fallback은 지원 판정에 포함하지 않는다. 문자 존재 검사는 복합 문자 조합의 시각적 결과까지 보장하지 않는다.
+
+파일 선택기는 TTF/OTF를 앱 전용 디렉터리로 복사한다. 최대 32MB/파일, 전체 100MB·50개이며 SHA-256 식별자로 중복을 방지한다. 단일 TTF/OTF만 가져오며 TTC 가져오기는 지원하지 않는다. iOS는 데이터에서 만든 Core Text descriptor를 직접 보관해 기존 시스템 폰트와 이름이 같아도 가져온 파일을 렌더링한다. 시스템 전체에 폰트를 설치하지 않는다. 삭제하면 앱 내부 복사본과 즐겨찾기·비교·컬렉션 참조를 지우고 원본 파일은 보존한다.
+
+PNG 내보내기는 고정 영역의 네이티브 렌더링 결과에 선택적으로 폰트 정보를 합성한다. 저장·공유 화면에서 최종 PNG를 확대해 확인할 수 있고, 투명 배경도 선택할 수 있다. 저장은 iOS UIDocumentPicker와 Android ACTION_CREATE_DOCUMENT를 사용하며, 공유는 share_plus를 사용한다. 사진 라이브러리나 전체 저장소 권한을 요구하지 않는다. iPad 공유 팝오버에는 유효한 원점 영역을 전달한다.
+
+채널에 `importFont`, `removeImportedFont`, `saveImage`가 추가됐다. `renderPreview`는 `letterSpacing`(논리 pt), `lineHeight`(배수), `alignment`(left/center/right)도 받는다. 웹은 UI 데모로 유지하며 실제 파일 가져오기·문자 검사·이미지 저장은 모바일에서 제공한다.
+
+`Font toolkit native checks`는 실제 폰트 데이터 가져오기·중복 방지·누락 문자·한글 필터·PNG의 보이는 픽셀·설정 복원·삭제를 양 플랫폼에서 검증하고 화면을 캡처한다. 테스트용 서브셋 폰트의 출처와 라이선스는 `test/fixtures/OFL.txt`를 따른다. 일반 앱 번들에는 테스트 폰트를 포함하지 않는다.
+
 ## Android 출시 실행 검증
+
+Android 빌드 CI는 공통 작업 `.github/actions/gradle-central-mirror`로 다운로드를 준비한다. Gradle 설치 ZIP는 공식 GitHub release API로 wrapper 캐시에 받고, 저장소에 고정한 SHA-256과 일치해야 사용한다. 일반 배포 URL의 반복된 HTTP 504를 피하면서 같은 9.1.0 파일을 사용한다. Kotlin 컴파일러 모듈만 Google의 Maven Central 미러에서 받는다. Flutter SDK 포함 빌드의 settings 전용 저장소 정책과 앱의 project 저장소 정책을 구분해 적용하며, SDK 파일이나 저장소 정책 자체를 수정하지 않는다. 필요하면 로컬에서 `android/gradlew --init-script ../.github/actions/gradle-central-mirror/central-mirror.init.gradle help`로 구성을 검증할 수 있다.
 
 Android 출시 최적화에는 `android/app/proguard-rules.pro`를 적용한다. 광고 SDK의 전이 의존성인 Room/WorkManager가 반사로 호출하는 생성자를 보존해야 한다. 디버그 실행만으로 이 문제를 검증할 수 없으므로 `Android internal bundle`은 최적화된 출시 APK를 에뮬레이터에서 두 번 실행한 후에만 AAB를 제공한다. SDK 업데이트 후에도 이 실행 검사를 유지한다.
 

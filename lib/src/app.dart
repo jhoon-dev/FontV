@@ -10,6 +10,12 @@ import '../l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'font_service.dart';
 import 'ads.dart';
+import 'collection_tools.dart';
+import 'comparison.dart';
+import 'import_tools.dart';
+import 'preview_tools.dart';
+import 'font_export.dart';
+import 'color_picker.dart';
 
 const _canvas = Color(0xFFF8F7F4);
 const _text = Color(0xFF242329);
@@ -108,6 +114,14 @@ class _FontHomeState extends State<FontHome> {
   FontController get c => widget.controller;
 
   void _open(FontFace face, bool wide) {
+    if (c.selectingForCompare) {
+      if (!c.toggleComparison(face.id)) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.l10n.compareLimit)));
+      }
+      return;
+    }
     if (wide) {
       setState(() => _selected = face);
       return;
@@ -123,10 +137,51 @@ class _FontHomeState extends State<FontHome> {
   Widget build(BuildContext context) {
     final wide = MediaQuery.sizeOf(context).width >= 900;
     final fonts = c.visibleFonts;
+    final selected = c.fonts.where((f) => f.id == _selected?.id).firstOrNull;
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 78,
         titleSpacing: 24,
+        actions: [
+          IconButton(
+            key: const Key('compare-mode'),
+            tooltip: context.l10n.compareSelect,
+            onPressed: () => c.setComparisonSelection(!c.selectingForCompare),
+            icon: const Icon(Icons.compare_arrows),
+          ),
+          IconButton(
+            key: const Key('collections-page'),
+            tooltip: context.l10n.collections,
+            onPressed: () async {
+              final id = await Navigator.of(context).push<String>(
+                MaterialPageRoute(
+                  builder: (_) => CollectionsPage(controller: c),
+                ),
+              );
+              if (id != null) {
+                _search.clear();
+                c.selectCollection(id);
+              }
+            },
+            icon: const Icon(Icons.folder_outlined),
+          ),
+          IconButton(
+            key: const Key('import-fonts-page'),
+            tooltip: context.l10n.importFonts,
+            onPressed: () async {
+              final face = await Navigator.of(context).push<FontFace>(
+                MaterialPageRoute(
+                  builder: (_) => ImportedFontsPage(controller: c),
+                ),
+              );
+              if (face != null && context.mounted) {
+                c.setComparisonSelection(false);
+                _open(face, MediaQuery.sizeOf(context).width >= 900);
+              }
+            },
+            icon: const Icon(Icons.file_open_outlined),
+          ),
+        ],
         title: FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
@@ -184,10 +239,10 @@ class _FontHomeState extends State<FontHome> {
                             borderRadius: BorderRadius.circular(24),
                             border: Border.all(color: _line),
                           ),
-                          child: _selected != null
+                          child: selected != null
                               ? FontDetail(
                                   controller: c,
-                                  face: _selected!,
+                                  face: selected,
                                   embedded: true,
                                 )
                               : _EmptyState(
@@ -201,28 +256,72 @@ class _FontHomeState extends State<FontHome> {
                 ],
               ),
       ),
-      bottomNavigationBar: NavigationBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        indicatorColor: c.skin.color.withValues(alpha: .12),
-        selectedIndex: c.tab,
-        onDestinationSelected: (value) {
-          _search.clear();
-          c.setTab(value);
-        },
-        destinations: [
-          NavigationDestination(
-            icon: Icon(Icons.text_fields_rounded),
-            label: context.l10n.fonts,
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bookmark_border_rounded),
-            selectedIcon: Icon(Icons.bookmark_rounded),
-            label: context.l10n.favorites,
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.tune_rounded),
-            label: context.l10n.settings,
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (c.selectingForCompare || c.comparisonIds.isNotEmpty)
+            SafeArea(
+              top: false,
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${context.l10n.compare} · ${c.comparisonIds.length}/4',
+                      ),
+                    ),
+                    FilledButton(
+                      key: const Key('open-comparison'),
+                      onPressed: c.comparisonFonts.length < 2
+                          ? null
+                          : () {
+                              c.setComparisonSelection(false);
+                              Navigator.of(context).push<void>(
+                                MaterialPageRoute(
+                                  builder: (_) => ComparisonPage(controller: c),
+                                ),
+                              );
+                            },
+                      child: Text(context.l10n.compare),
+                    ),
+                    IconButton(
+                      tooltip: context.l10n.clearSelection,
+                      onPressed: c.clearComparison,
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          NavigationBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            indicatorColor: c.skin.color.withValues(alpha: .12),
+            selectedIndex: c.tab,
+            onDestinationSelected: (value) {
+              _search.clear();
+              c.setTab(value);
+            },
+            destinations: [
+              NavigationDestination(
+                icon: Icon(Icons.text_fields_rounded),
+                label: context.l10n.fonts,
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.bookmark_border_rounded),
+                selectedIcon: Icon(Icons.bookmark_rounded),
+                label: context.l10n.favorites,
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.tune_rounded),
+                label: context.l10n.settings,
+              ),
+            ],
           ),
         ],
       ),
@@ -314,12 +413,83 @@ class _FontHomeState extends State<FontHome> {
                           ),
                   ),
                 ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    Tooltip(
+                      message: c.coverageAvailable
+                          ? context.l10n.hangulFilterHelp
+                          : context.l10n.deviceFeature,
+                      child: FilterChip(
+                        key: const Key('hangul-filter'),
+                        label: Text(context.l10n.hangulOnly),
+                        selected: c.hangulOnly,
+                        onSelected: c.coverageAvailable && !c.loading
+                            ? (value) async {
+                                try {
+                                  await c.setHangulOnly(value);
+                                } catch (_) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          context.l10n.coverageError,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                }
+                              }
+                            : null,
+                      ),
+                    ),
+                  ],
+                ),
+                if (c.selectingForCompare)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(context.l10n.compareHint),
+                  ),
+                if (c.tab == 1 && c.collections.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: DropdownButtonFormField<String>(
+                      key: ValueKey(
+                        'collection-filter:${c.selectedCollectionId}',
+                      ),
+                      initialValue: c.selectedCollectionId ?? '__favorites__',
+                      isExpanded: true,
+                      items: [
+                        DropdownMenuItem(
+                          value: '__favorites__',
+                          child: Text(context.l10n.favorites),
+                        ),
+                        for (final collection in c.collections)
+                          DropdownMenuItem(
+                            value: collection.id,
+                            child: Text(
+                              collection.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
+                      onChanged: (value) {
+                        _search.clear();
+                        c.selectCollection(
+                          value == '__favorites__' ? null : value,
+                        );
+                      },
+                    ),
+                  ),
               ],
             ),
           ),
         ],
       ),
-      emptyState: c.loading
+      emptyState: c.loading || c.hangulLoading
           ? const Center(child: CircularProgressIndicator())
           : c.error != null
           ? _EmptyState(
@@ -334,10 +504,14 @@ class _FontHomeState extends State<FontHome> {
               icon: c.query.isNotEmpty
                   ? Icons.search_off_rounded
                   : Icons.bookmark_border_rounded,
-              title: c.query.isNotEmpty
+              title: c.selectedCollection != null && c.query.isEmpty
+                  ? context.l10n.collectionNoFonts
+                  : c.query.isNotEmpty || c.hangulOnly
                   ? context.l10n.noMatches
                   : context.l10n.favoritesEmpty,
-              subtitle: c.query.isNotEmpty
+              subtitle: c.selectedCollection != null && c.query.isEmpty
+                  ? context.l10n.collectionAdvice
+                  : c.query.isNotEmpty || c.hangulOnly
                   ? context.l10n.searchAdvice
                   : context.l10n.favoritesAdvice,
             ),
@@ -417,6 +591,47 @@ class FontDetail extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              OutlinedButton.icon(
+                key: const Key('font-export'),
+                onPressed: () => showFontExport(context, c, face),
+                icon: const Icon(Icons.ios_share, size: 18),
+                label: Text(context.l10n.exportImage),
+              ),
+              OutlinedButton.icon(
+                key: const Key('font-collections'),
+                onPressed: () => showFontCollections(context, c, face.id),
+                icon: const Icon(Icons.folder_outlined, size: 18),
+                label: Text(context.l10n.addToCollection),
+              ),
+              OutlinedButton.icon(
+                key: const Key('font-compare'),
+                onPressed: () {
+                  if (!c.toggleComparison(face.id)) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(context.l10n.compareLimit)),
+                    );
+                  }
+                },
+                icon: Icon(
+                  c.comparisonIds.contains(face.id)
+                      ? Icons.check
+                      : Icons.compare_arrows,
+                  size: 18,
+                ),
+                label: Text(
+                  c.comparisonIds.contains(face.id)
+                      ? context.l10n.removeFromCompare
+                      : context.l10n.addToCompare,
+                ),
+              ),
+              if (face.imported) Chip(label: Text(context.l10n.importedLabel)),
+            ],
+          ),
           const SizedBox(height: 24),
           Container(
             key: const Key('preview-canvas'),
@@ -438,6 +653,9 @@ class FontDetail extends StatelessWidget {
                     text: c.sample,
                     size: c.size,
                     color: c.ink,
+                    letterSpacing: c.letterSpacing,
+                    lineHeight: c.lineHeight,
+                    alignment: c.alignment,
                   ),
                 ),
               ),
@@ -517,13 +735,15 @@ class FontDetail extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
+          TypographyControls(controller: c, includeSize: false),
+          const SizedBox(height: 18),
           Row(
             children: [
               Expanded(
                 child: _ColorButton(
                   label: context.l10n.textColor,
                   color: c.ink,
-                  onTap: () => _pickColor(context, c, true),
+                  onTap: () => pickPreviewColor(context, c, true),
                 ),
               ),
               const SizedBox(width: 12),
@@ -531,7 +751,7 @@ class FontDetail extends StatelessWidget {
                 child: _ColorButton(
                   label: context.l10n.backgroundColor,
                   color: c.paper,
-                  onTap: () => _pickColor(context, c, false),
+                  onTap: () => pickPreviewColor(context, c, false),
                 ),
               ),
             ],
@@ -567,6 +787,8 @@ class FontDetail extends StatelessWidget {
             context.l10n.fallbackHelp,
             style: TextStyle(fontSize: 12, height: 1.7, color: _muted),
           ),
+          const SizedBox(height: 16),
+          CharacterSupportCard(service: c.service, face: face, text: c.sample),
         ],
       );
       if (embedded) return content;
@@ -957,194 +1179,4 @@ Future<void> _editSample(BuildContext context, FontController c) async {
   await Future<void>.delayed(const Duration(milliseconds: 300));
   text.dispose();
   if (value != null) c.setSample(value);
-}
-
-Future<void> _pickColor(
-  BuildContext context,
-  FontController c,
-  bool foreground,
-) async {
-  final color = await showModalBottomSheet<Color>(
-    context: context,
-    isScrollControlled: true,
-    showDragHandle: true,
-    builder: (_) => _ColorPicker(
-      initial: foreground ? c.ink : c.paper,
-      foreground: foreground,
-    ),
-  );
-  if (color != null) {
-    foreground ? c.setInk(color) : c.setPaper(color);
-  }
-}
-
-class _ColorPicker extends StatefulWidget {
-  const _ColorPicker({required this.initial, required this.foreground});
-  final Color initial;
-  final bool foreground;
-  @override
-  State<_ColorPicker> createState() => _ColorPickerState();
-}
-
-class _ColorPickerState extends State<_ColorPicker> {
-  late Color color = widget.initial;
-  late final hex = TextEditingController(text: _hex(color));
-  bool invalid = false;
-  static String _hex(Color c) =>
-      c.toARGB32().toRadixString(16).substring(2).toUpperCase();
-  void change(Color next) {
-    setState(() {
-      color = next;
-      hex.text = _hex(next);
-      invalid = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) => SafeArea(
-    child: Padding(
-      padding: EdgeInsets.fromLTRB(
-        24,
-        0,
-        24,
-        24 + MediaQuery.viewInsetsOf(context).bottom,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.foreground
-                  ? context.l10n.textColor
-                  : context.l10n.backgroundColor,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 20),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children:
-                  const [
-                        0xFF252329,
-                        0xFFFFFFFF,
-                        0xFFFFFBF5,
-                        0xFFD9437B,
-                        0xFFCC4149,
-                        0xFF28745B,
-                        0xFF896344,
-                        0xFF7655AB,
-                        0xFF467EB5,
-                      ]
-                      .map(
-                        (argb) => Semantics(
-                          label: '#${argb.toRadixString(16).substring(2)}',
-                          button: true,
-                          child: InkWell(
-                            onTap: () => change(Color(argb)),
-                            borderRadius: BorderRadius.circular(24),
-                            child: Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: Color(argb),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: _muted.withValues(alpha: .3),
-                                ),
-                              ),
-                              child: color.toARGB32() == argb
-                                  ? Icon(
-                                      Icons.check,
-                                      size: 18,
-                                      color: Color(argb).computeLuminance() > .5
-                                          ? Colors.black
-                                          : Colors.white,
-                                    )
-                                  : null,
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
-            ),
-            const SizedBox(height: 24),
-            for (final channel in ['R', 'G', 'B'])
-              Row(
-                children: [
-                  SizedBox(width: 20, child: Text(channel)),
-                  Expanded(
-                    child: Slider(
-                      value: switch (channel) {
-                        'R' => color.r * 255,
-                        'G' => color.g * 255,
-                        _ => color.b * 255,
-                      },
-                      min: 0,
-                      max: 255,
-                      divisions: 255,
-                      label: switch (channel) {
-                        'R' => '${(color.r * 255).round()}',
-                        'G' => '${(color.g * 255).round()}',
-                        _ => '${(color.b * 255).round()}',
-                      },
-                      onChanged: (value) => change(
-                        Color.fromARGB(
-                          255,
-                          channel == 'R'
-                              ? value.round()
-                              : (color.r * 255).round(),
-                          channel == 'G'
-                              ? value.round()
-                              : (color.g * 255).round(),
-                          channel == 'B'
-                              ? value.round()
-                              : (color.b * 255).round(),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: hex,
-              maxLength: 6,
-              decoration: InputDecoration(
-                prefixText: '# ',
-                labelText: 'HEX',
-                errorText: invalid ? context.l10n.invalidHex : null,
-              ),
-              onChanged: (value) => setState(() {
-                if (RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(value)) {
-                  color = Color(0xFF000000 | int.parse(value, radix: 16));
-                  invalid = false;
-                } else {
-                  invalid = true;
-                }
-              }),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: !invalid
-                    ? () => Navigator.pop(context, color)
-                    : null,
-                child: Padding(
-                  padding: EdgeInsets.all(14),
-                  child: Text(context.l10n.apply),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-  @override
-  void dispose() {
-    hex.dispose();
-    super.dispose();
-  }
 }

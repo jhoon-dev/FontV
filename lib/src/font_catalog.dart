@@ -48,6 +48,7 @@ class _FontCatalogState extends State<FontCatalog> {
   late String _lastQuery;
   late int _lastTab;
   int _filterGeneration = 0;
+  String? _lastFilter;
 
   bool get _searching => widget.controller.query.trim().isNotEmpty;
   double get _headerHeight {
@@ -67,9 +68,13 @@ class _FontCatalogState extends State<FontCatalog> {
   void didUpdateWidget(covariant FontCatalog oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (_lastQuery != widget.controller.query ||
-        _lastTab != widget.controller.tab) {
+        _lastTab != widget.controller.tab ||
+        _lastFilter !=
+            '${widget.controller.hangulOnly}/${widget.controller.selectedCollectionId}') {
       _lastQuery = widget.controller.query;
       _lastTab = widget.controller.tab;
+      _lastFilter =
+          '${widget.controller.hangulOnly}/${widget.controller.selectedCollectionId}';
       _collapsedSearch.clear();
       _activeLabel = null;
       _scrubbing = false;
@@ -601,11 +606,23 @@ class _FontCard extends StatelessWidget {
       child: InkWell(
         key: ValueKey('font:${face.id}'),
         onTap: onTap,
+        onLongPress: () {
+          controller.setComparisonSelection(true);
+          if (!controller.toggleComparison(face.id)) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(context.l10n.compareLimit)));
+          }
+        },
         child: Container(
           padding: const EdgeInsets.fromLTRB(14, 16, 10, 14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(nested ? 12 : 18),
-            border: Border.all(color: selected ? controller.skin.color : _line),
+            border: Border.all(
+              color: selected || controller.comparisonIds.contains(face.id)
+                  ? controller.skin.color
+                  : _line,
+            ),
           ),
           child: Row(
             children: [
@@ -641,7 +658,7 @@ class _FontCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      nested ? face.name : face.style,
+                      '${nested ? face.name : face.style}${face.imported ? ' · ${context.l10n.importedLabel}' : ''}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -653,20 +670,41 @@ class _FontCard extends StatelessWidget {
                   ],
                 ),
               ),
-              IconButton(
-                key: ValueKey('favorite:${face.id}'),
-                tooltip: favorite
-                    ? context.l10n.removeFavorite
-                    : context.l10n.addFavorite,
-                onPressed: () => controller.toggleFavorite(face.id),
-                icon: Icon(
-                  favorite
-                      ? Icons.bookmark_rounded
-                      : Icons.bookmark_border_rounded,
-                  color: favorite ? controller.skin.color : _muted,
-                  size: 21,
+              if (controller.selectingForCompare)
+                IconButton(
+                  key: ValueKey('compare:${face.id}'),
+                  tooltip: controller.comparisonIds.contains(face.id)
+                      ? context.l10n.removeFromCompare
+                      : context.l10n.addToCompare,
+                  onPressed: () {
+                    if (!controller.toggleComparison(face.id)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(context.l10n.compareLimit)),
+                      );
+                    }
+                  },
+                  icon: Icon(
+                    controller.comparisonIds.contains(face.id)
+                        ? Icons.check_circle
+                        : Icons.add_circle_outline,
+                    color: controller.skin.color,
+                  ),
+                )
+              else
+                IconButton(
+                  key: ValueKey('favorite:${face.id}'),
+                  tooltip: favorite
+                      ? context.l10n.removeFavorite
+                      : context.l10n.addFavorite,
+                  onPressed: () => controller.toggleFavorite(face.id),
+                  icon: Icon(
+                    favorite
+                        ? Icons.bookmark_rounded
+                        : Icons.bookmark_border_rounded,
+                    color: favorite ? controller.skin.color : _muted,
+                    size: 21,
+                  ),
                 ),
-              ),
             ],
           ),
         ),

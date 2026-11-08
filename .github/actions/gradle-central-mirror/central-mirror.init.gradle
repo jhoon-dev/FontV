@@ -1,0 +1,32 @@
+// Init scripts also run for Flutter's included Gradle build, which uses its
+// own Kotlin compiler version and is not configured by android/build.gradle.kts.
+import org.gradle.api.initialization.resolve.RepositoriesMode
+
+def settingsRepositoriesOnly = false
+def compilerMirror = { repositories ->
+    def mirror = repositories.maven {
+        name = 'FontVMavenCentralCompilerMirror'
+        url = 'https://maven-central.storage-download.googleapis.com/maven2'
+        content {
+            includeModule('org.jetbrains.kotlin', 'kotlin-compiler-embeddable')
+        }
+    }
+    // Root allprojects blocks may already have added Central to subprojects.
+    // Explicit priority is needed before their compiler classpaths resolve.
+    repositories.remove(mirror)
+    repositories.addFirst(mirror)
+}
+gradle.beforeSettings { settings ->
+    compilerMirror(settings.dependencyResolutionManagement.repositories)
+}
+gradle.settingsEvaluated { settings ->
+    settingsRepositoriesOnly = settings.dependencyResolutionManagement.repositoriesMode.get() != RepositoriesMode.PREFER_PROJECT
+}
+gradle.beforeProject { project ->
+    // Flutter's SDK build forbids adding project repositories. Honor its policy.
+    if (!settingsRepositoriesOnly) compilerMirror(project.repositories)
+    compilerMirror(project.buildscript.repositories)
+    if (project.path == ':') {
+        logger.lifecycle("[Font V CI] Kotlin compiler mirror enabled for ${project.name}")
+    }
+}
