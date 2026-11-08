@@ -9,6 +9,7 @@
 - [화면 정렬·PNG 미리보기 후속 검증](https://github.com/jhoon-dev/FontV/actions/workflows/toolkit-smoke.yml)은 같은 네이티브 검증에 내보내기 화면의 실제 PNG 미리보기 확인과 캡처를 추가한다. Image 위젯 생성만으로 준비 완료를 판정하지 않고 RawImage의 실제 디코딩된 이미지와 다음 프레임을 기다린다. 해당 실행의 아티팩트에는 플랫폼별 비교 화면과 내보내기 화면이 저장된다.
 - iOS 후속 검증은 [실행 42463737536](https://github.com/jhoon-dev/FontV/actions/runs/42463737536)에서 성공했고 비교·내보내기 캡처의 실제 문장과 정보 표시를 확인했다. 같은 실행의 Android 작업은 컴파일러 JAR 다운로드 HTTP 504로 두 번 중단됐다. CI 초기화 스크립트로 해당 컴파일러 모듈만 Google의 Maven Central 미러를 먼저 사용하도록 했다. 앱뿐 아니라 Flutter SDK의 포함 빌드에도 적용하며 모든 Android 빌드 워크플로에서 공통 작업을 사용한다. 미러의 2.3.20 JAR는 Central의 공개 체크섬과 일치했으며 SHA-256은 `976f989d0b5f5d80e8e8a8ad4b73da0bfc27fdd965b9fa38362b2be79ecc1337`이다.
 - Flutter SDK가 쓰는 2.2.20 컴파일러도 미러 파일과 Central의 공개 체크섬이 일치했다(SHA-256 `1c6c3f810bfe6a41abcbc34b3a2ef639f1e3f4aeed3a953a4b0974eea4f41889`). 초기화 스크립트로 앱과 Flutter 포함 빌드 설정을 함께 평가하는 `gradlew help`가 성공했다.
+- 최종 앱 기능 코드의 [iOS·Android 통합 검증 42466373934](https://github.com/jhoon-dev/FontV/actions/runs/42466373934)은 양쪽 모두 성공했고, Android PNG 내보내기 캡처에서도 실제 문장·폰트 정보가 표시됨을 확인했다. 별도 기본 빌드 CI에서 Gradle 배포 ZIP의 HTTP 504가 재발해, 공식 release API로 같은 ZIP를 wrapper 캐시에 준비하도록 보강했다. ZIP의 SHA-256은 공식 배포 체크섬과 일치했고, 빈 wrapper 캐시에 설치한 Gradle의 `--version` 출력이 9.1.0임을 확인했다.
 - 테스트에서 운영체제 파일 저장 대화상자와 외부 공유 대상 앱을 직접 조작하지는 않는다. 네이티브 저장·공유 연결은 구현됐으며 기기별 공급자·대상 앱의 동작은 실기기 확인이 필요하다. 문자 지원 검사는 폰트 자체의 문자 매핑이며, 모든 조합 문자·언어의 조판 결과를 보장하지 않는다.
 - 이 기록은 소스 구현과 검증에 관한 것이다. 새 기능을 포함한 TestFlight·Google Play 배포는 별도로 수행한다. 기존 빌드 9의 스토어 상태와 구분한다.
 

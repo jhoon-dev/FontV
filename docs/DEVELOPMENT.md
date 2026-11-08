@@ -83,7 +83,7 @@ PNG 내보내기는 고정 영역의 네이티브 렌더링 결과에 선택적�
 
 ## Android 출시 실행 검증
 
-Android 빌드 CI는 공통 작업 `.github/actions/gradle-central-mirror`로 Gradle 초기화 스크립트를 설치한다. 반복된 HTTP 504를 피하기 위해 Kotlin 컴파일러 모듈만 Google의 Maven Central 미러에서 받는다. Flutter SDK 포함 빌드의 settings 전용 저장소 정책과 앱의 project 저장소 정책을 구분해 적용하며, SDK 파일이나 저장소 정책 자체를 수정하지 않는다. 필요하면 로컬에서 `android/gradlew --init-script ../.github/actions/gradle-central-mirror/central-mirror.init.gradle help`로 구성을 검증할 수 있다.
+Android 빌드 CI는 공통 작업 `.github/actions/gradle-central-mirror`로 다운로드를 준비한다. Gradle 설치 ZIP는 공식 GitHub release API로 wrapper 캐시에 받고, 저장소에 고정한 SHA-256과 일치해야 사용한다. 일반 배포 URL의 반복된 HTTP 504를 피하면서 같은 9.1.0 파일을 사용한다. Kotlin 컴파일러 모듈만 Google의 Maven Central 미러에서 받는다. Flutter SDK 포함 빌드의 settings 전용 저장소 정책과 앱의 project 저장소 정책을 구분해 적용하며, SDK 파일이나 저장소 정책 자체를 수정하지 않는다. 필요하면 로컬에서 `android/gradlew --init-script ../.github/actions/gradle-central-mirror/central-mirror.init.gradle help`로 구성을 검증할 수 있다.
 
 Android 출시 최적화에는 `android/app/proguard-rules.pro`를 적용한다. 광고 SDK의 전이 의존성인 Room/WorkManager가 반사로 호출하는 생성자를 보존해야 한다. 디버그 실행만으로 이 문제를 검증할 수 없으므로 `Android internal bundle`은 최적화된 출시 APK를 에뮬레이터에서 두 번 실행한 후에만 AAB를 제공한다. SDK 업데이트 후에도 이 실행 검사를 유지한다.
 

@@ -1,8 +1,13 @@
-name: Configure Kotlin compiler mirror
-description: Use Central's Google mirror for compiler artifacts in app and Flutter included builds
+name: Configure Android build downloads
+description: Cache verified Gradle and mirror compiler downloads for app and Flutter included builds
 runs:
   using: composite
   steps:
+    - name: Cache checksum-verified Gradle distribution
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 "$GITHUB_ACTION_PATH/cache-gradle.py"
     - shell: bash
       run: |
         fontv_gradle_dir="${GRADLE_USER_HOME:-$HOME/.gradle}"
