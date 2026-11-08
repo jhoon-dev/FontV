@@ -185,36 +185,14 @@ class _FontHomeState extends State<FontHome> {
         title: FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'font',
-                style: TextStyle(
-                  fontSize: 29,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -1.8,
-                  color: c.skin.color,
-                ),
-              ),
-              Text(
-                ' V',
-                style: TextStyle(fontSize: 29, fontWeight: FontWeight.w300),
-              ),
-              const SizedBox(width: 14),
-              Text(
-                'TOOLMOA',
-                maxLines: 1,
-                overflow: TextOverflow.fade,
-                softWrap: false,
-                style: TextStyle(
-                  fontSize: 12,
-                  letterSpacing: 1.9,
-                  fontWeight: FontWeight.w600,
-                  color: _muted,
-                ),
-              ),
-            ],
+          child: Text(
+            'Font V',
+            style: TextStyle(
+              fontSize: 29,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -1.8,
+              color: c.skin.color,
+            ),
           ),
         ),
       ),
