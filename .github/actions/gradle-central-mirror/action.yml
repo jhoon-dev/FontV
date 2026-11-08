@@ -1,0 +1,10 @@
+name: Configure Kotlin compiler mirror
+description: Use Central's Google mirror for compiler artifacts in app and Flutter included builds
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        fontv_gradle_dir="${GRADLE_USER_HOME:-$HOME/.gradle}"
+        mkdir -p "$fontv_gradle_dir/init.d"
+        cp "$GITHUB_ACTION_PATH/central-mirror.init.gradle" "$fontv_gradle_dir/init.d/fontv-central-mirror.init.gradle"
