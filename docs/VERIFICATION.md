@@ -1,5 +1,15 @@
 # Font V 검증 기록
 
+## 2026-11-08 새 기능 포함 내부 테스트 빌드 10
+
+- 소스 `9de6789`에서 `2.0.0 (10)`을 서명 빌드했다. 폰트 비교, 한글 필터·문자 검사, PNG 저장·공유, 컬렉션, 자간·행간·정렬, TTF/OTF 가져오기를 모두 포함한다. 기존 Font V 전용 운영 광고 설정을 사용했다.
+- [iOS 서명·검증·업로드 CI](https://github.com/jhoon-dev/FontV/actions/runs/42468739044)가 성공했다. Apple 처리 후 빌드 `46aabc44-86a0-4a25-b4c3-915b67d2e65e`가 `IN_BETA_TESTING` 상태이며, App Store Connect의 기존 `ToolMoa Internal` 그룹에서도 `2.0.0 (10)`의 ‘테스트 중’을 확인했다. 한국어 테스트 안내를 저장했다.
+- [Android 서명·출시 시작 검사 CI](https://github.com/jhoon-dev/FontV/actions/runs/42468742686)가 성공했다. 최적화된 출시 APK를 Android 에뮬레이터에서 두 차례 실행한 뒤 제공된 AAB를 사용했다. 내려받은 ZIP 무결성과 이전 빌드 9와 동일한 업로드 인증서도 확인했다.
+- AAB SHA-256: `2052fbe4f6d7c4241f457e2ba7badfbadc7cac49005538292738ca829d796214`.
+- Play Console이 버전 코드 10, 버전 이름 2.0.0, 최소 API 29, 타겟 SDK 36, ABI 3개를 수락했다. 기존 지원 기기의 감소는 없었다. 한국어·영어 출시 노트를 등록하고 기존 내부 트랙에 게시한 뒤 ‘최신 출시 버전: 10 (2.0.0)’, ‘활성’, ‘내부 테스터에게 제공됨’을 확인했다. [기존 내부 테스트 참여 링크](https://play.google.com/apps/internaltest/4701307094679828370)를 유지한다.
+- 새 로컬 파일·컬렉션·이미지 내보내기 설명을 포함한 개인정보처리방침을 [기존 공개 URL](https://toolmoa.app/apps/fontv/privacy/)에 배포했다. HTTP 200과 저장소 원본의 정확한 일치를 확인했다.
+- 이번 배포는 기존 내부 테스터 대상이다. App Store 공개 심사 빌드와 Google Play 프로덕션 트랙은 변경하지 않았다. 배포 상태 증빙은 무시된 `artifacts/internal-build10/`에 보관한다.
+
 ## 2026-11-08 폰트 활용 기능 6종
 
 - 폰트 2–4개 비교, 한글 필터·문자 지원 검사, PNG 저장·공유, 이름 있는 컬렉션, 자간·행간·정렬, TTF/OTF 가져오기를 추가했다. 영문·한국어 UI와 기존 설정 복원을 유지한다.
