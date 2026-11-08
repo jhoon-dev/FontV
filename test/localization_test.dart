@@ -24,8 +24,10 @@ void main() {
       );
       expect(find.text(language == 'ko' ? '설정' : 'Settings'), findsOneWidget);
       expect(find.byType(AppBar).evaluate().single.widget is AppBar, true);
-      final appBar = tester.widget<AppBar>(find.byType(AppBar));
-      expect(appBar.actions, isNull);
+      expect(
+        find.descendant(of: find.byType(AppBar), matching: find.byType(Chip)),
+        findsNothing,
+      );
     });
   }
 

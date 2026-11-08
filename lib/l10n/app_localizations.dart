@@ -547,6 +547,366 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Privacy choices are unavailable right now. Try again later.'**
   String get privacyUnavailable;
+
+  /// No description provided for @compare.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get compare;
+
+  /// No description provided for @compareSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose fonts to compare'**
+  String get compareSelect;
+
+  /// No description provided for @compareHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose 2–4 faces from the list. Tap again to remove.'**
+  String get compareHint;
+
+  /// No description provided for @compareLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You can compare up to four fonts.'**
+  String get compareLimit;
+
+  /// No description provided for @compareNeedTwo.
+  ///
+  /// In en, this message translates to:
+  /// **'Select at least two fonts to compare.'**
+  String get compareNeedTwo;
+
+  /// No description provided for @clearSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear selection'**
+  String get clearSelection;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @addToCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to comparison'**
+  String get addToCompare;
+
+  /// No description provided for @removeFromCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from comparison'**
+  String get removeFromCompare;
+
+  /// No description provided for @hangulOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Korean support'**
+  String get hangulOnly;
+
+  /// No description provided for @hangulFilterHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows fonts containing all 11,172 modern Hangul syllables. Jamo and historic characters may differ.'**
+  String get hangulFilterHelp;
+
+  /// No description provided for @checkingFonts.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking character support…'**
+  String get checkingFonts;
+
+  /// No description provided for @coverageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Character support'**
+  String get coverageTitle;
+
+  /// No description provided for @coverageComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'All printable characters in this text are supported.'**
+  String get coverageComplete;
+
+  /// No description provided for @coverageMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing characters (a fallback font may be used)'**
+  String get coverageMissing;
+
+  /// No description provided for @coverageHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Checks the font’s own character map, before fallback. This does not guarantee shaping of every character sequence.'**
+  String get coverageHelp;
+
+  /// No description provided for @coverageError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check character support. Try again.'**
+  String get coverageError;
+
+  /// No description provided for @deviceFeature.
+  ///
+  /// In en, this message translates to:
+  /// **'Available in the iOS and Android apps.'**
+  String get deviceFeature;
+
+  /// No description provided for @letterSpacing.
+  ///
+  /// In en, this message translates to:
+  /// **'Letter spacing'**
+  String get letterSpacing;
+
+  /// No description provided for @lineHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Line height'**
+  String get lineHeight;
+
+  /// No description provided for @alignment.
+  ///
+  /// In en, this message translates to:
+  /// **'Alignment'**
+  String get alignment;
+
+  /// No description provided for @alignLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get alignLeft;
+
+  /// No description provided for @alignCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Center'**
+  String get alignCenter;
+
+  /// No description provided for @alignRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Right'**
+  String get alignRight;
+
+  /// No description provided for @collections.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get collections;
+
+  /// No description provided for @newCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'New collection'**
+  String get newCollection;
+
+  /// No description provided for @collectionName.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection name'**
+  String get collectionName;
+
+  /// No description provided for @collectionNameHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a unique name, up to 40 characters.'**
+  String get collectionNameHelp;
+
+  /// No description provided for @collectionEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a collection for your next project.'**
+  String get collectionEmpty;
+
+  /// No description provided for @collectionManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage collections'**
+  String get collectionManage;
+
+  /// No description provided for @addToCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to collection'**
+  String get addToCollection;
+
+  /// No description provided for @collectionChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose collections for this font.'**
+  String get collectionChoose;
+
+  /// No description provided for @rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get rename;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @deleteCollectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete collection?'**
+  String get deleteCollectionTitle;
+
+  /// No description provided for @deleteCollectionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the collection will be removed. Your fonts and favorites stay saved.'**
+  String get deleteCollectionBody;
+
+  /// No description provided for @collectionNoFonts.
+  ///
+  /// In en, this message translates to:
+  /// **'No fonts in this collection yet.'**
+  String get collectionNoFonts;
+
+  /// No description provided for @collectionAdvice.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a font and use “Add to collection”.'**
+  String get collectionAdvice;
+
+  /// No description provided for @importFonts.
+  ///
+  /// In en, this message translates to:
+  /// **'Import font file'**
+  String get importFonts;
+
+  /// No description provided for @importedFonts.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported fonts'**
+  String get importedFonts;
+
+  /// No description provided for @importHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a TTF or OTF file to preview it in Font V. Files stay on this device. Up to 32 MB per file, 100 MB total and 50 files.'**
+  String get importHelp;
+
+  /// No description provided for @importEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your imported fonts will appear here.'**
+  String get importEmpty;
+
+  /// No description provided for @importInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This is not a valid single TTF or OTF font.'**
+  String get importInvalid;
+
+  /// No description provided for @importTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a font file smaller than 32 MB.'**
+  String get importTooLarge;
+
+  /// No description provided for @importLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'The imported font limit is 50 files or 100 MB. Remove a file to continue.'**
+  String get importLimit;
+
+  /// No description provided for @importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not import the font. Check the file and available storage.'**
+  String get importFailed;
+
+  /// No description provided for @importSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Font imported. It is now in your font list.'**
+  String get importSuccess;
+
+  /// No description provided for @removeImportedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove imported font?'**
+  String get removeImportedTitle;
+
+  /// No description provided for @removeImportedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this app’s copy and its collection, favorite and comparison entries. The original file stays in its original location.'**
+  String get removeImportedBody;
+
+  /// No description provided for @exportImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Save or share image'**
+  String get exportImage;
+
+  /// No description provided for @exportInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Include font details'**
+  String get exportInfo;
+
+  /// No description provided for @exportTransparent.
+  ///
+  /// In en, this message translates to:
+  /// **'Transparent background'**
+  String get exportTransparent;
+
+  /// No description provided for @exportHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Export the preview area as a PNG. Long text is clipped to the preview area.'**
+  String get exportHelp;
+
+  /// No description provided for @saveImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Save PNG to Files'**
+  String get saveImage;
+
+  /// No description provided for @shareImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Share PNG'**
+  String get shareImage;
+
+  /// No description provided for @imageSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Image saved.'**
+  String get imageSaved;
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export the image. Please try again.'**
+  String get exportFailed;
+
+  /// No description provided for @previewOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview options'**
+  String get previewOptions;
+
+  /// No description provided for @fontsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'fonts'**
+  String get fontsUnit;
+
+  /// No description provided for @importedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported'**
+  String get importedLabel;
 }
 
 class _AppLocalizationsDelegate

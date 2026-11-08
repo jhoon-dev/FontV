@@ -250,4 +250,188 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get privacyUnavailable => '지금은 개인정보 설정을 열 수 없어요. 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get compare => '비교 보기';
+
+  @override
+  String get compareSelect => '비교할 폰트 선택';
+
+  @override
+  String get compareHint => '목록에서 폰트 2~4개를 선택하세요. 다시 누르면 선택이 해제됩니다.';
+
+  @override
+  String get compareLimit => '폰트는 최대 4개까지 비교할 수 있습니다.';
+
+  @override
+  String get compareNeedTwo => '비교할 폰트를 두 개 이상 선택하세요.';
+
+  @override
+  String get clearSelection => '선택 해제';
+
+  @override
+  String get done => '완료';
+
+  @override
+  String get addToCompare => '비교에 추가';
+
+  @override
+  String get removeFromCompare => '비교에서 제거';
+
+  @override
+  String get hangulOnly => '한글 지원';
+
+  @override
+  String get hangulFilterHelp =>
+      '현대 한글 완성형 11,172자를 모두 포함한 폰트만 표시합니다. 자모와 옛한글 지원은 다를 수 있습니다.';
+
+  @override
+  String get checkingFonts => '문자 지원 여부 확인 중…';
+
+  @override
+  String get coverageTitle => '문자 지원 확인';
+
+  @override
+  String get coverageComplete => '이 문장의 표시 가능한 문자를 모두 지원합니다.';
+
+  @override
+  String get coverageMissing => '지원하지 않는 문자 · 대체 폰트로 표시될 수 있습니다';
+
+  @override
+  String get coverageHelp =>
+      '대체 폰트를 사용하기 전, 해당 폰트 자체의 문자 지원을 확인합니다. 모든 문자 조합의 모양을 보장하지는 않습니다.';
+
+  @override
+  String get coverageError => '문자 지원 여부를 확인하지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get deviceFeature => 'iOS·Android 앱에서 사용할 수 있습니다.';
+
+  @override
+  String get letterSpacing => '자간';
+
+  @override
+  String get lineHeight => '줄 간격';
+
+  @override
+  String get alignment => '정렬';
+
+  @override
+  String get alignLeft => '왼쪽';
+
+  @override
+  String get alignCenter => '가운데';
+
+  @override
+  String get alignRight => '오른쪽';
+
+  @override
+  String get collections => '컬렉션';
+
+  @override
+  String get newCollection => '새 컬렉션';
+
+  @override
+  String get collectionName => '컬렉션 이름';
+
+  @override
+  String get collectionNameHelp => '중복되지 않는 이름을 40자 이내로 입력하세요.';
+
+  @override
+  String get collectionEmpty => '용도에 맞는 컬렉션을 만들어 보세요.';
+
+  @override
+  String get collectionManage => '컬렉션 관리';
+
+  @override
+  String get addToCollection => '컬렉션에 담기';
+
+  @override
+  String get collectionChoose => '이 폰트를 담을 컬렉션을 선택하세요.';
+
+  @override
+  String get rename => '이름 변경';
+
+  @override
+  String get delete => '삭제';
+
+  @override
+  String get deleteCollectionTitle => '컬렉션을 삭제할까요?';
+
+  @override
+  String get deleteCollectionBody => '컬렉션만 삭제됩니다. 폰트와 즐겨찾기는 유지됩니다.';
+
+  @override
+  String get collectionNoFonts => '이 컬렉션에 담긴 폰트가 없습니다.';
+
+  @override
+  String get collectionAdvice => '폰트 미리보기에서 ‘컬렉션에 담기’를 선택하세요.';
+
+  @override
+  String get importFonts => '폰트 파일 불러오기';
+
+  @override
+  String get importedFonts => '불러온 폰트';
+
+  @override
+  String get importHelp =>
+      'TTF·OTF 파일을 열어 Font V에서 미리 보세요. 파일은 기기에 저장됩니다. 파일당 32MB, 전체 100MB·50개까지 지원합니다.';
+
+  @override
+  String get importEmpty => '불러온 폰트가 여기에 표시됩니다.';
+
+  @override
+  String get importInvalid => '올바른 단일 TTF·OTF 폰트 파일이 아닙니다.';
+
+  @override
+  String get importTooLarge => '32MB 이하의 폰트 파일을 선택하세요.';
+
+  @override
+  String get importLimit => '불러온 폰트는 최대 50개·100MB입니다. 파일을 삭제한 뒤 다시 시도해 주세요.';
+
+  @override
+  String get importFailed => '폰트를 불러오지 못했습니다. 파일과 저장 공간을 확인해 주세요.';
+
+  @override
+  String get importSuccess => '폰트를 불러왔습니다. 폰트 목록에서 확인할 수 있습니다.';
+
+  @override
+  String get removeImportedTitle => '불러온 폰트를 삭제할까요?';
+
+  @override
+  String get removeImportedBody =>
+      '앱에 저장된 사본과 해당 폰트의 컬렉션·즐겨찾기·비교 선택이 삭제됩니다. 원본 파일은 원래 위치에 유지됩니다.';
+
+  @override
+  String get exportImage => '이미지 저장·공유';
+
+  @override
+  String get exportInfo => '폰트 정보 표시';
+
+  @override
+  String get exportTransparent => '투명 배경';
+
+  @override
+  String get exportHelp => '미리보기 영역을 PNG로 저장합니다. 긴 문장은 미리보기 영역까지만 포함됩니다.';
+
+  @override
+  String get saveImage => 'PNG 파일로 저장';
+
+  @override
+  String get shareImage => 'PNG 공유';
+
+  @override
+  String get imageSaved => '이미지를 저장했습니다.';
+
+  @override
+  String get exportFailed => '이미지를 내보내지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get previewOptions => '미리보기 설정';
+
+  @override
+  String get fontsUnit => '개 폰트';
+
+  @override
+  String get importedLabel => '불러온 폰트';
 }

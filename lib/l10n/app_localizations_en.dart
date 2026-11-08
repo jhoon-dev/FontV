@@ -256,4 +256,195 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get privacyUnavailable =>
       'Privacy choices are unavailable right now. Try again later.';
+
+  @override
+  String get compare => 'Compare';
+
+  @override
+  String get compareSelect => 'Choose fonts to compare';
+
+  @override
+  String get compareHint =>
+      'Choose 2–4 faces from the list. Tap again to remove.';
+
+  @override
+  String get compareLimit => 'You can compare up to four fonts.';
+
+  @override
+  String get compareNeedTwo => 'Select at least two fonts to compare.';
+
+  @override
+  String get clearSelection => 'Clear selection';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get addToCompare => 'Add to comparison';
+
+  @override
+  String get removeFromCompare => 'Remove from comparison';
+
+  @override
+  String get hangulOnly => 'Korean support';
+
+  @override
+  String get hangulFilterHelp =>
+      'Shows fonts containing all 11,172 modern Hangul syllables. Jamo and historic characters may differ.';
+
+  @override
+  String get checkingFonts => 'Checking character support…';
+
+  @override
+  String get coverageTitle => 'Character support';
+
+  @override
+  String get coverageComplete =>
+      'All printable characters in this text are supported.';
+
+  @override
+  String get coverageMissing =>
+      'Missing characters (a fallback font may be used)';
+
+  @override
+  String get coverageHelp =>
+      'Checks the font’s own character map, before fallback. This does not guarantee shaping of every character sequence.';
+
+  @override
+  String get coverageError => 'Could not check character support. Try again.';
+
+  @override
+  String get deviceFeature => 'Available in the iOS and Android apps.';
+
+  @override
+  String get letterSpacing => 'Letter spacing';
+
+  @override
+  String get lineHeight => 'Line height';
+
+  @override
+  String get alignment => 'Alignment';
+
+  @override
+  String get alignLeft => 'Left';
+
+  @override
+  String get alignCenter => 'Center';
+
+  @override
+  String get alignRight => 'Right';
+
+  @override
+  String get collections => 'Collections';
+
+  @override
+  String get newCollection => 'New collection';
+
+  @override
+  String get collectionName => 'Collection name';
+
+  @override
+  String get collectionNameHelp => 'Enter a unique name, up to 40 characters.';
+
+  @override
+  String get collectionEmpty => 'Create a collection for your next project.';
+
+  @override
+  String get collectionManage => 'Manage collections';
+
+  @override
+  String get addToCollection => 'Add to collection';
+
+  @override
+  String get collectionChoose => 'Choose collections for this font.';
+
+  @override
+  String get rename => 'Rename';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get deleteCollectionTitle => 'Delete collection?';
+
+  @override
+  String get deleteCollectionBody =>
+      'Only the collection will be removed. Your fonts and favorites stay saved.';
+
+  @override
+  String get collectionNoFonts => 'No fonts in this collection yet.';
+
+  @override
+  String get collectionAdvice => 'Open a font and use “Add to collection”.';
+
+  @override
+  String get importFonts => 'Import font file';
+
+  @override
+  String get importedFonts => 'Imported fonts';
+
+  @override
+  String get importHelp =>
+      'Open a TTF or OTF file to preview it in Font V. Files stay on this device. Up to 32 MB per file, 100 MB total and 50 files.';
+
+  @override
+  String get importEmpty => 'Your imported fonts will appear here.';
+
+  @override
+  String get importInvalid => 'This is not a valid single TTF or OTF font.';
+
+  @override
+  String get importTooLarge => 'Choose a font file smaller than 32 MB.';
+
+  @override
+  String get importLimit =>
+      'The imported font limit is 50 files or 100 MB. Remove a file to continue.';
+
+  @override
+  String get importFailed =>
+      'Could not import the font. Check the file and available storage.';
+
+  @override
+  String get importSuccess => 'Font imported. It is now in your font list.';
+
+  @override
+  String get removeImportedTitle => 'Remove imported font?';
+
+  @override
+  String get removeImportedBody =>
+      'Remove this app’s copy and its collection, favorite and comparison entries. The original file stays in its original location.';
+
+  @override
+  String get exportImage => 'Save or share image';
+
+  @override
+  String get exportInfo => 'Include font details';
+
+  @override
+  String get exportTransparent => 'Transparent background';
+
+  @override
+  String get exportHelp =>
+      'Export the preview area as a PNG. Long text is clipped to the preview area.';
+
+  @override
+  String get saveImage => 'Save PNG to Files';
+
+  @override
+  String get shareImage => 'Share PNG';
+
+  @override
+  String get imageSaved => 'Image saved.';
+
+  @override
+  String get exportFailed => 'Could not export the image. Please try again.';
+
+  @override
+  String get previewOptions => 'Preview options';
+
+  @override
+  String get fontsUnit => 'fonts';
+
+  @override
+  String get importedLabel => 'Imported';
 }
