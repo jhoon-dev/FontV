@@ -130,6 +130,23 @@ void main() {
       await binding.takeScreenshot(
         'font-v-${defaultTargetPlatform.name}-comparison',
       );
+      await tester.tap(find.byTooltip('이미지 저장·공유').first);
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+      for (
+        var i = 0;
+        i < 20 &&
+            find.byKey(const Key('export-image-preview')).evaluate().isEmpty;
+        i++
+      ) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.byKey(const Key('export-image-preview')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await binding.takeScreenshot(
+        'font-v-${defaultTargetPlatform.name}-export',
+      );
+      Navigator.of(tester.element(find.byKey(const Key('export-save')))).pop();
+      await tester.pumpAndSettle();
       Navigator.of(tester.element(find.byType(Scaffold).last)).pop();
       await tester.pumpAndSettle();
       await c.removeImportedFont(imported.id);

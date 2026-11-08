@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'controller.dart';
 import 'font_service.dart';
 import 'localization.dart';
+import 'color_picker.dart';
 
 class TypographyControls extends StatelessWidget {
   const TypographyControls({
@@ -94,6 +95,25 @@ class TypographyControls extends StatelessWidget {
           selected: {c.alignment},
           onSelectionChanged: (values) => c.setAlignment(values.single),
         ),
+        if (includeSize) ...[
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () => pickPreviewColor(context, c, true),
+                icon: Icon(Icons.format_color_text, color: c.ink),
+                label: Text(context.l10n.textColor),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => pickPreviewColor(context, c, false),
+                icon: const Icon(Icons.format_color_fill),
+                label: Text(context.l10n.backgroundColor),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }

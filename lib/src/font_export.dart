@@ -89,6 +89,36 @@ class _ExportSheetState extends State<_ExportSheet> {
   bool _info = true;
   bool _transparent = false;
   bool _busy = false;
+  Future<Uint8List>? _preview;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshPreview();
+  }
+
+  void _refreshPreview() {
+    if (widget.controller.service.isDemo) return;
+    final c = widget.controller;
+    _preview = FontImageExporter(c.service).render(
+      face: widget.face,
+      paper: c.paper,
+      includeInfo: _info,
+      transparent: _transparent,
+      request: PreviewRequest(
+        fontId: widget.face.id,
+        text: c.sample,
+        size: c.size,
+        color: c.ink.toARGB32(),
+        width: 540,
+        height: 360,
+        scale: 2,
+        letterSpacing: c.letterSpacing,
+        lineHeight: c.lineHeight,
+        alignment: c.alignment,
+      ),
+    );
+  }
 
   Future<void> _export(bool share) async {
     // Capture the button's valid popover origin before any asynchronous work.
@@ -99,24 +129,8 @@ class _ExportSheetState extends State<_ExportSheet> {
     setState(() => _busy = true);
     final c = widget.controller;
     try {
-      final png = await FontImageExporter(c.service).render(
-        face: widget.face,
-        paper: c.paper,
-        includeInfo: _info,
-        transparent: _transparent,
-        request: PreviewRequest(
-          fontId: widget.face.id,
-          text: c.sample,
-          size: c.size,
-          color: c.ink.toARGB32(),
-          width: 540,
-          height: 360,
-          scale: 2,
-          letterSpacing: c.letterSpacing,
-          lineHeight: c.lineHeight,
-          alignment: c.alignment,
-        ),
-      );
+      final png = await _preview!;
+      if (!mounted) return;
       final safeName = widget.face.name.replaceAll(
         RegExp(r'[^a-zA-Z0-9_-]'),
         '_',
@@ -164,17 +178,62 @@ class _ExportSheetState extends State<_ExportSheet> {
           ),
           const SizedBox(height: 12),
           Text(context.l10n.exportHelp),
+          if (_preview != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: SizedBox(
+                height: 190,
+                child: ColoredBox(
+                  color: widget.controller.paper,
+                  child: FutureBuilder<Uint8List>(
+                    future: _preview,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState != ConnectionState.done) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.hasError) {
+                        return Center(
+                          child: TextButton(
+                            onPressed: () => setState(_refreshPreview),
+                            child: Text(context.l10n.retry),
+                          ),
+                        );
+                      }
+                      return InteractiveViewer(
+                        minScale: 1,
+                        maxScale: 4,
+                        child: Image.memory(
+                          snapshot.data!,
+                          key: const Key('export-image-preview'),
+                          fit: BoxFit.contain,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(context.l10n.exportInfo),
             value: _info,
-            onChanged: _busy ? null : (v) => setState(() => _info = v),
+            onChanged: _busy
+                ? null
+                : (v) => setState(() {
+                    _info = v;
+                    _refreshPreview();
+                  }),
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(context.l10n.exportTransparent),
             value: _transparent,
-            onChanged: _busy ? null : (v) => setState(() => _transparent = v),
+            onChanged: _busy
+                ? null
+                : (v) => setState(() {
+                    _transparent = v;
+                    _refreshPreview();
+                  }),
           ),
           if (_busy) const LinearProgressIndicator(),
           const SizedBox(height: 12),

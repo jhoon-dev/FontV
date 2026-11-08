@@ -157,6 +157,7 @@ class FontService {
   Future<List<FontFace>> loadFonts() async {
     if (isDemo) return demoFonts;
     final rows = await channel.invokeListMethod<Object?>('getFonts');
+    clearCache();
     final fonts = (rows ?? [])
         .map((row) => FontFace.fromMap(row as Map<Object?, Object?>))
         .toList();

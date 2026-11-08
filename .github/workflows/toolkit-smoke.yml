@@ -10,6 +10,9 @@ on:
       - '.github/workflows/toolkit-smoke.yml'
 permissions:
   contents: read
+concurrency:
+  group: font-toolkit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   ios:
     runs-on: macos-latest

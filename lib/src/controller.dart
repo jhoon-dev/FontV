@@ -232,7 +232,7 @@ class FontController extends ChangeNotifier {
   }
 
   Future<void> setHangulOnly(bool value) async {
-    if (value && !coverageAvailable) return;
+    if (value && (!coverageAvailable || loading)) return;
     hangulOnly = value;
     final generation = ++_hangulGeneration;
     hangulLoading = value && _hangulIds == null;

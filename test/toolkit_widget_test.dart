@@ -42,6 +42,14 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('comparison:a')), findsOneWidget);
       expect(find.byKey(const ValueKey('comparison:b')), findsOneWidget);
+      tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      tester.view.physicalSize = const Size(320, 844);
+      await tester.pumpAndSettle();
+      expect(
+        tester.getTopLeft(find.byKey(const ValueKey('comparison:a'))).dy,
+        tester.getTopLeft(find.byKey(const ValueKey('comparison:b'))).dy,
+      );
       c.setLetterSpacing(3);
       c.setLineHeight(1.75);
       await tester.pumpAndSettle();
