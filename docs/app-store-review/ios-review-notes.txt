@@ -1,0 +1,34 @@
+Font V | iOS 2.0.0 (11)
+Bundle ID: app.toolmoa.fontv | Apple ID: 6831850547
+DRAFT: Physical QA/video pending. Replace placeholders and select build 11 before submission. The rejected submission uses build 9.
+
+1. Physical-device recording and quality assurance
+Physical-device QA/recordings: [PENDING]
+iPhone model / exact iOS / test date: [PENDING]
+iPad model / exact iPadOS / test date: [PENDING]
+Installed version/build verified on each device: [PENDING]
+Recording URL(s) or attachment name(s): [PENDING]
+Actual results, including failures: [PENDING]
+Record launch and normal user flow on a physical device with the latest OS. Simulator checks are not physical-device QA.
+
+2. Purpose and intended audience
+Font V helps designers, students and general users inspect device fonts and compare text. It groups families, previews text/colors, compares faces, checks character support, organizes favorites/collections and exports PNGs. It does not install or change system fonts. It is free with optional catalog ads; no paid features or in-app purchases.
+
+3. Setup and main features
+No account, login credentials, subscription, server setup or sample file is needed for system-font browsing. English and Korean are available in Settings > Language.
+a) Expand a family, search or use the right-hand letter index. Tap a face; select a sample or enter text and adjust size/colors.
+b) Preview options adjust spacing, line height and alignment. Character support checks the font's own character map before OS fallback; the Korean filter checks modern Hangul coverage.
+c) Bookmark a face and open Favorites. The top comparison-arrows button selects 2-4 faces for Compare. The folder button manages collections; add faces from their detail pages.
+d) Save or share image previews a PNG with optional font details/transparency. Save PNG to Files opens the save picker; Share PNG opens the share sheet.
+e) Import font file opens the system picker for a user-owned TTF/OTF and copies it into app storage. The original stays unchanged; no system-wide installation or font download service is provided.
+f) Settings provides theme/language, privacy policy and help. Reopening the app restores local preferences, favorites, collections and imported files.
+
+4. External services, tools and user content
+Core features use Flutter and native UIKit/Core Text APIs on-device. SharedPreferences stores preferences; file_selector/native document pickers and share_plus handle file/share flows. No developer backend, authentication, payment or AI service is required. Google AdMob supplies catalog ads; UMP handles applicable consent/privacy choices. Ad availability does not block font features. ToolMoa hosts help/privacy pages. Files/share providers are user-selected.
+Sample text, collections and imported fonts remain local. There is no public posting, feed, messaging or account creation; reporting/blocking/account-deletion flows are not applicable.
+
+5. Regional differences
+Core features are consistent across regions. UI follows the device language (English/Korean; otherwise English) with an in-app override. Font availability varies by OS/device, not a regional content service. Ads and consent/privacy choices may differ by region, consent and availability.
+
+6. Regulated services and protected material
+Font V is a general font utility, not a regulated financial, medical or gambling service. It accesses OS fonts through system APIs and does not distribute third-party font files or protected media catalogs. Optional imported font files are selected locally by users; users are responsible for their font licenses and exported uses.

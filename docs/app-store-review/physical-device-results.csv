@@ -1,0 +1,3 @@
+device_family,device_model,os_version,app_version,build_number,test_date,recording_file_or_url,result,notes
+iPhone,PENDING,PENDING,2.0.0,11,PENDING,PENDING,PENDING,Record actual launch and typical flow on latest compatible public OS
+iPad,PENDING,PENDING,2.0.0,11,PENDING,PENDING,PENDING,Check rotation keyboard Files share popover and persistence on physical device
