@@ -1,0 +1,72 @@
+name: macOS TestFlight
+on:
+  workflow_dispatch:
+    inputs:
+      verified_run_id:
+        description: Successful Desktop builds run ID for this exact commit
+        required: true
+        type: string
+      build_number:
+        description: Unique macOS build number
+        required: true
+        default: '12'
+        type: string
+      distribute_only:
+        description: Finish internal distribution of an already uploaded build
+        default: false
+        type: boolean
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: fontv-macos-testflight
+  cancel-in-progress: false
+jobs:
+  verified-source:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require successful desktop checks for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERIFIED_RUN: ${{ inputs.verified_run_id }}
+          EXPECTED_SHA: ${{ github.sha }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          [[ "$VERIFIED_RUN" =~ ^[0-9]+$ ]]
+          gh api "repos/$GH_REPO/actions/runs/$VERIFIED_RUN" > run.json
+          jq -e --arg sha "$EXPECTED_SHA" '.name == "Desktop builds" and .head_sha == $sha and .conclusion == "success"' run.json
+  internal-test:
+    needs: verified-source
+    runs-on: macos-latest
+    timeout-minutes: 75
+    environment: apple-testflight
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        if: ${{ !inputs.distribute_only }}
+        with:
+          flutter-version: '3.44.2'
+          cache: true
+      - name: Verify, sign and distribute macOS build
+        run: node tool/run_macos_ci.mjs
+        env:
+          FONTV_BUILD_NUMBER: ${{ inputs.build_number }}
+          FONTV_DISTRIBUTE_ONLY: ${{ inputs.distribute_only }}
+          FONTV_DIAGNOSTICS_KEY: ${{ secrets.FONTV_DIAGNOSTICS_KEY }}
+          MAC_APP_STORE_CERTIFICATES_P12: ${{ secrets.MAC_APP_STORE_CERTIFICATES_P12 }}
+          MAC_APP_STORE_CERTIFICATES_PASSWORD: ${{ secrets.MAC_APP_STORE_CERTIFICATES_PASSWORD }}
+          ASC_KEY_BASE64: ${{ secrets.ASC_KEY_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: FontV-macOS-TestFlight-result
+          path: artifacts/macos-testflight/
+          retention-days: 7
+          if-no-files-found: warn
