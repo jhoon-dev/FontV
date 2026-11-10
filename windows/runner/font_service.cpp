@@ -22,7 +22,8 @@ using V = flutter::EncodableValue;
 using Map = flutter::EncodableMap;
 using List = flutter::EncodableList;
 namespace fs = std::filesystem;
-void Check(HRESULT hr) { if (FAILED(hr)) throw "FONT_ERROR"; }
+struct NativeError { HRESULT hr; };
+void Check(HRESULT hr) { if (FAILED(hr)) throw NativeError{hr}; }
 const V& Arg(const Map& args, const char* name) {
   auto it = args.find(V(name));
   if (it == args.end()) throw "FONT_INVALID";
@@ -153,8 +154,8 @@ class Catalog {
     const auto style = Name(names.Get());
     names.Reset();
     BOOL exists = FALSE;
-    Check(font->GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_POSTSCRIPT_NAME, &names, &exists));
-    const auto name = exists ? Name(names.Get()) : value.family + L" " + style;
+    const HRESULT info = font->GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_POSTSCRIPT_NAME, &names, &exists);
+    const auto name = SUCCEEDED(info) && exists ? Name(names.Get()) : value.family + L" " + style;
     value.row = {{V("id"), V(id.empty() ? "system:" + Utf8(name) : id)},
                  {V("name"), V(Utf8(name))}, {V("family"), V(Utf8(value.family))},
                  {V("style"), V(Utf8(style))}, {V("imported"), V(imported)}};
@@ -190,14 +191,19 @@ class Catalog {
     Check(factory_->GetSystemFontCollection(&system, TRUE));
     for (UINT32 f = 0; f < system->GetFontFamilyCount(); ++f) {
       ComPtr<IDWriteFontFamily> family;
-      Check(system->GetFontFamily(f, &family));
+      if (FAILED(system->GetFontFamily(f, &family))) continue;
       for (UINT32 i = 0; i < family->GetFontCount(); ++i) {
-        ComPtr<IDWriteFont> font;
-        Check(family->GetFont(i, &font));
-        if (font->GetSimulations() != DWRITE_FONT_SIMULATIONS_NONE) continue;
-        auto face = MakeFace(font.Get(), system.Get(), "", false);
-        auto id = std::get<std::string>(face.row.at(V("id")));
-        faces_[id] = std::move(face);
+        try {
+          ComPtr<IDWriteFont> font;
+          Check(family->GetFont(i, &font));
+          if (font->GetSimulations() != DWRITE_FONT_SIMULATIONS_NONE) continue;
+          auto face = MakeFace(font.Get(), system.Get(), "", false);
+          auto id = std::get<std::string>(face.row.at(V("id")));
+          faces_[id] = std::move(face);
+        } catch (const NativeError&) {
+          // Installed collections can contain unavailable or damaged faces.
+          // Keep every accessible font usable instead of failing the catalog.
+        }
       }
     }
     for (const auto& entry : fs::directory_iterator(imports_)) {
@@ -378,7 +384,11 @@ void FontService::Run() {
         Check(com);
         if (!catalog) catalog = std::make_unique<Catalog>();
         completion.value = catalog->Call(task.method, std::get<Map>(task.arguments));
-      } catch (const char* code) { completion.error = code; }
+      } catch (const NativeError& error) {
+          completion.error = "FONT_ERROR";
+          completion.value = Value(Map{{Value("method"), Value(task.method)},
+              {Value("hresult"), Value(static_cast<int64_t>(static_cast<uint32_t>(error.hr)))}});
+        } catch (const char* code) { completion.error = code; }
         catch (...) { completion.error = "FONT_ERROR"; }
       {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -397,6 +407,6 @@ void FontService::CompleteResults() {
   }
   for (auto& item : ready) {
     if (item.error.empty()) item.result->Success(item.value);
-    else item.result->Error(item.error, "Font operation failed");
+    else item.result->Error(item.error, "Font operation failed", item.value);
   }
 }

@@ -16,7 +16,7 @@ Windows와 macOS에서도 기기에 설치된 실제 글꼴을 탐색한다. 기
 ./tool/build_windows_msix.ps1 -Mode test
 ```
 
-산출물은 `artifacts/windows/FontV.msix`와 공개 인증서 `FontV-test.cer`다. 패키징 도구의 공용 테스트 인증서를 사용하는 개발 패키지다. 스크립트는 인증서를 신뢰 저장소에 설치하지 않는다. 테스트 PC에서만 공개 인증서를 로컬 컴퓨터의 **Trusted People**에 수동으로 등록한 뒤 MSIX를 설치한다. 이 패키지는 일반 사용자 배포용이 아니다. EXE 설치 프로그램과 포터블 ZIP은 생성·배포하지 않는다. 빌드 중 만들어지는 내부 실행 파일은 MSIX에 포함된다.
+산출물은 `artifacts/windows/FontV.msix`와 공개 인증서 `FontV-test.cer`다. 빌드마다 유효기간 30일인 Font V 전용 개발 인증서를 생성하고 패키징 후 개인 키와 임시 PFX를 삭제한다. 스크립트는 인증서를 신뢰 저장소에 설치하지 않는다. 테스트 PC에서만 공개 인증서를 로컬 컴퓨터의 **Trusted People**에 등록한 뒤 MSIX를 설치한다. 이 패키지는 일반 사용자 배포용이 아니다. EXE 설치 프로그램과 포터블 ZIP은 생성·배포하지 않는다. 빌드 중 만들어지는 내부 실행 파일은 MSIX에 포함된다.
 
 Microsoft Store 제출용:
 

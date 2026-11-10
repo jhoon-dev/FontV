@@ -8,12 +8,32 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $fontProjectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$fontTestCertificate = $null
+$fontTestPfxPath = $null
 Push-Location $fontProjectRoot
 try {
     $msixArguments = @('run', 'msix:create', '--install-certificate', 'false')
     if ($Version) {
         if ($Version -notmatch '^\d+\.\d+\.\d+\.\d+$') { throw 'Version must contain four numeric components.' }
         $msixArguments += @('--version', $Version)
+    }
+    if ($Mode -eq 'test') {
+        # Each build gets its own short-lived key. The public MSIX package test
+        # key is deliberately avoided for packages installed on a user's PC.
+        $fontTestSubject = if ($Publisher) { $Publisher } else { 'CN=ToolMoa Font V Development' }
+        $fontTestCertificate = New-SelfSignedCertificate -Type CodeSigningCert `
+            -Subject $fontTestSubject -FriendlyName 'Font V development signing' `
+            -CertStoreLocation 'Cert:/CurrentUser/My' -KeyExportPolicy Exportable `
+            -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256 `
+            -NotAfter (Get-Date).AddDays(30)
+        $fontTestPfxPath = Join-Path ([IO.Path]::GetTempPath()) ("FontV-$([guid]::NewGuid().ToString('N')).pfx")
+        $fontTestPassword = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+        if ($env:GITHUB_ACTIONS -eq 'true') { Write-Output "::add-mask::$fontTestPassword" }
+        Export-PfxCertificate -Cert $fontTestCertificate -FilePath $fontTestPfxPath `
+            -Password (ConvertTo-SecureString $fontTestPassword -AsPlainText -Force) | Out-Null
+        $msixArguments += @('--certificate-path', $fontTestPfxPath,
+                            '--certificate-password', $fontTestPassword)
+        $Publisher = $fontTestSubject
     }
     if ($Mode -eq 'store') {
         if (!$IdentityName -or !$Publisher -or !$PublisherDisplayName) {
@@ -50,4 +70,12 @@ try {
         }
     }
     Write-Output "Created $package ($Mode)"
-} finally { Pop-Location }
+} finally {
+    if ($fontTestPfxPath -and (Test-Path -LiteralPath $fontTestPfxPath)) {
+        Remove-Item -LiteralPath $fontTestPfxPath -Force
+    }
+    if ($fontTestCertificate) {
+        Remove-Item -LiteralPath "Cert:/CurrentUser/My/$($fontTestCertificate.Thumbprint)" -Force
+    }
+    Pop-Location
+}
