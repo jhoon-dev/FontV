@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       verified_run_id:
-        description: Successful Desktop builds run ID for this exact commit
+        description: Successful Desktop builds run ID for identical app and test sources
         required: true
         type: string
       build_number:
@@ -26,7 +26,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Require successful desktop checks for this commit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - name: Require successful desktop checks for identical app sources
         env:
           GH_TOKEN: ${{ github.token }}
           VERIFIED_RUN: ${{ inputs.verified_run_id }}
@@ -36,7 +39,10 @@ jobs:
           set -euo pipefail
           [[ "$VERIFIED_RUN" =~ ^[0-9]+$ ]]
           gh api "repos/$GH_REPO/actions/runs/$VERIFIED_RUN" > run.json
-          jq -e --arg sha "$EXPECTED_SHA" '.name == "Desktop builds" and .head_sha == $sha and .conclusion == "success"' run.json
+          jq -e --arg repo "$GH_REPO" '.name == "Desktop builds" and .conclusion == "success" and .head_repository.full_name == $repo' run.json
+          verified_sha=$(jq -r '.head_sha' run.json)
+          git merge-base --is-ancestor "$verified_sha" "$EXPECTED_SHA"
+          git diff --exit-code "$verified_sha" "$EXPECTED_SHA" -- lib windows macos pubspec.yaml pubspec.lock test integration_test test_driver
   internal-test:
     needs: verified-source
     runs-on: macos-latest

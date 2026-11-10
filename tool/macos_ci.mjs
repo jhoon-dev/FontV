@@ -29,7 +29,14 @@ async function api(route, method = 'GET', body) {
   const url = new URL(route, 'https://api.appstoreconnect.apple.com');
   if (url.origin !== 'https://api.appstoreconnect.apple.com' || !url.pathname.startsWith('/v1/')) throw Error('Invalid Apple API origin');
   for (let attempt = 0; attempt < 4; attempt++) {
-    const response = await fetch(url, {method, redirect: 'error', signal: AbortSignal.timeout(30000), headers: {Authorization: `Bearer ${token()}`, 'Content-Type': 'application/json'}, body: body ? JSON.stringify(body) : undefined});
+    let response;
+    try {
+      response = await fetch(url, {method, redirect: 'error', signal: AbortSignal.timeout(30000), headers: {Authorization: `Bearer ${token()}`, 'Content-Type': 'application/json', Connection: 'close'}, body: body ? JSON.stringify(body) : undefined});
+    } catch (error) {
+      if (method !== 'GET' || attempt === 3) throw error;
+      await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1)));
+      continue;
+    }
     if (method === 'GET' && (response.status === 429 || response.status >= 500) && attempt < 3) { await response.text(); await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1))); continue; }
     if (!response.ok) throw Error(`Apple API ${method} ${url.pathname}: ${response.status} ${await response.text()}`);
     return response.status === 204 ? {} : response.json();
