@@ -58,8 +58,16 @@ flutter test integration_test/desktop_test.dart -d windows
 flutter test integration_test/desktop_test.dart -d macos
 ```
 
-`Desktop builds` CI는 각 OS에서 실제 시스템 글꼴, 잘못된 가져오기, 중복 제거, 재조회 후 유지, 한글·보조 평면 문자 지원, PNG 크기·투명도·실제 픽셀, 자간 변화, 즐겨찾기·컬렉션 유지·정리를 검사한다. Windows는 MSIX와 공개 테스트 인증서만, Mac은 개발용 DMG를 아티팩트로 보관한다. CI는 소스에 추가했으며 아직 원격으로 실행하지 않았다.
+`Desktop builds` CI는 각 OS에서 실제 시스템 글꼴, 잘못된 가져오기, 중복 제거, 재조회 후 유지, 한글·보조 평면 문자 지원, PNG 크기·투명도·실제 픽셀, 자간 변화, 즐겨찾기·컬렉션 유지·정리를 검사한다. Windows는 MSIX와 공개 테스트 인증서만, Mac은 개발용 DMG를 아티팩트로 보관한다. [2026-11-10 검증 실행](https://github.com/jhoon-dev/FontV/actions/runs/42736551873)에서 두 OS 모두 성공했다.
 
-2026-11-10 로컬 환경에서는 C++ 빌드 도구와 플러그인 심볼릭 링크 권한 부족으로 Windows 빌드가 차단되었다. Windows 호스트에서는 macOS 빌드를 실행할 수 없다. 두 설치 파일의 생성 성공이나 설치 완료를 검증한 상태는 아니다. 패키지 설치 후 파일 선택·취소, PNG 저장·공유, 재실행 후 가져온 글꼴 유지, 업데이트 설치는 두 OS에서 별도로 확인해야 한다.
+2026-11-10 Windows 11에서 검증 MSIX를 실제 설치·실행했다. 서명 `Valid`, 패키지 상태 `Ok`, 시스템 글꼴 목록·검색·미리보기·TTF 가져오기·투명 PNG 저장·재실행 후 가져온 글꼴/즐겨찾기 유지를 확인했다. Mac의 네이티브 실행 검증은 GitHub macOS 러너에서 수행했다. Mac 실기기에서 TestFlight 설치와 Windows의 향후 버전 업데이트 설치는 별도 검증 대상이다.
+
+## macOS TestFlight 내부 배포
+
+`macOS TestFlight` 수동 워크플로는 `main`에서만 실행하며 기존 `apple-testflight` 보호 환경을 사용한다. `verified_run_id`로 성공한 `Desktop builds` 실행을 지정해야 한다. 해당 검증 커밋이 조상이고 `lib`, `windows`, `macos`, 의존성, 테스트 소스가 모두 동일해야 한다. 배포 스크립트나 문서만 수정한 경우에도 앱과 테스트 소스 동일성을 다시 검사한다.
+
+배포 러너는 정적 분석·35개 테스트·실제 Mac 통합 테스트를 다시 수행한다. 기존 Mac App Store 애플리케이션/설치 프로그램 인증서와 Font V 전용 프로비저닝 프로파일로 서명하고, 아카이브의 번들 ID·빌드 번호·샌드박스·프로파일·서명 및 Apple 패키지 검증을 통과한 후에만 업로드한다. Apple 처리가 `VALID`가 된 뒤 기존 `ToolMoa Internal` 그룹에 연결하고 내부 테스트 가능 상태를 확인한다. 공개 App Store 심사 제출은 하지 않는다.
+
+보호 환경의 `MAC_APP_STORE_CERTIFICATES_P12`, `MAC_APP_STORE_CERTIFICATES_PASSWORD`와 기존 ASC API 키를 사용한다. 키체인·프로파일·임시 파일은 종료 시 정리하고 상세 진단은 암호화 아티팩트로만 보관한다. 업로드 후 처리 대기만 실패했다면 같은 `build_number`와 `distribute_only=true`로 이어서 확인하며 같은 빌드를 다시 업로드하지 않는다.
 
 API 및 패키징 근거: [Flutter 데스크톱](https://docs.flutter.dev/platform-integration/desktop), [MSIX 도구](https://pub.dev/packages/msix), [DirectWrite 문자 간격](https://learn.microsoft.com/en-us/windows/win32/api/dwrite_1/nf-dwrite_1-idwritetextlayout1-setcharacterspacing), [Microsoft Store 버전 규칙](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/package-version-numbering).

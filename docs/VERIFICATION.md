@@ -1,13 +1,17 @@
 # Font V 검증 기록
 
-## 2026-11-10 데스크톱 타깃 추가
+## 2026-11-10 데스크톱 구현 및 실제 실행 검증
 
 - Windows/DirectWrite와 macOS/Core Text의 실제 글꼴 채널, 가져오기·문자 지원 검사·PNG 렌더링을 구현했다. 데스크톱 PNG 저장은 OS 파일 선택 창을 사용한다.
-- Windows 배포는 MSIX만 구성했다. Mac은 개발용 DMG 생성 스크립트를 추가했다. 각 OS의 네이티브 통합 검증 및 패키징 CI를 추가했으며, 원격 실행은 아직 하지 않았다.
+- Windows 배포는 MSIX만 구성했다. Mac은 개발용 DMG와 별도의 보호된 TestFlight 배포 워크플로를 추가했다. [최종 앱 소스 검증](https://github.com/jhoon-dev/FontV/actions/runs/42736551873)에서 Windows와 Mac 네이티브 통합 검사 및 패키징이 모두 성공했다.
 - `flutter analyze` 오류 없음, `flutter test` 35개 통과. 추가한 5개 테스트는 Windows/macOS의 네이티브 채널 선택, 광고 비활성화, 선택한 경로로 파일 저장·취소 및 미지원 플랫폼 데모 유지를 검증한다. 이 테스트는 실제 네이티브 바이너리를 실행하지 않는다.
 - Dart 포맷, PowerShell/Bash 스크립트 문법, YAML, macOS plist/entitlements/XIB/scheme, 아이콘 크기 및 `git diff --check`를 확인했다.
-- 로컬 Windows 빌드는 플러그인 심볼릭 링크 권한 부족으로 중단됐다. `flutter doctor -v`에서도 Visual Studio C++/CMake/Windows SDK 누락을 확인했다. macOS 네이티브 빌드는 이 Windows 호스트에서 실행할 수 없다.
-- 설치 파일 생성·네이티브 통합 테스트·실제 설치·출시 서명은 미검증이다. [재현 명령과 배포 조건](DESKTOP.md)을 기록했다.
+- 로컬 C++ 도구 설치 대신 GitHub Actions의 Windows 러너에서 빌드했다. 인수가 없는 Dart 호출의 null 값을 맵으로 처리하던 오류를 수정했고, 읽을 수 없는 개별 설치 글꼴은 건너뛰도록 했다.
+- [Windows 검증 패키지](https://github.com/jhoon-dev/FontV/actions/runs/42735404834/artifacts/13726488905): MSIX `2.0.0.0`/x64, 앱 ID `app.toolmoa.fontv`, SHA-256 `5051AC6EFBEFCB72E14A91C4BEF2A69F732E1B6403514DCCDEC96AD3897D4CD3`. 이후 최종 커밋까지 Windows 앱 소스와 의존성은 동일하다.
+- Windows 11에서 이 MSIX를 실제 설치했고 패키지 상태 `Ok`, Authenticode 서명 `Valid`, 실행 프로세스 응답을 확인했다. 시스템 글꼴 499개/214개 패밀리, 검색, 시스템 글꼴 미리보기, OS 파일 선택 창을 통한 TTF 가져오기와 PNG 저장을 확인했다.
+- 실제 저장한 투명 PNG는 `1176×972`, 알파 범위 `0–255`다. 앱을 종료하고 새 프로세스로 다시 실행해 가져온 글꼴과 즐겨찾기 유지도 확인했다. 테스트 fixture 추가 후 목록은 500개/215개 패밀리이며 fixture는 앱 로컬에 남겨 두었다.
+- Windows 개발 인증서는 로컬 컴퓨터의 `Trusted People`에만 등록했다. 개인 키는 CI 패키징 후 삭제했으며 공개 인증서 지문은 `5C9F05645B852D21E2DEE38A3435E996C8192AF8`이다. 공용 테스트 개인 키나 신뢰 루트 등록은 사용하지 않았다.
+- 로컬 산출물과 실행 검증 JSON·PNG는 `artifacts/windows/`에 보관했다. [재현 명령과 배포 조건](DESKTOP.md)을 기록했다.
 
 ## 2026-11-08 공통 헤더 및 내부 테스트 빌드 11
 
