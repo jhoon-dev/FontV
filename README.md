@@ -34,6 +34,8 @@ flutter build apk --debug
 
 Desktop packaging and native checks: [Windows MSIX / macOS instructions](docs/DESKTOP.md). Windows and macOS native integration checks pass on GitHub Actions. The Windows MSIX has also been installed and exercised on Windows 11, including font import, transparent PNG saving and persistence after restart. Desktop ads are disabled.
 
+macOS `2.0.0 (12)` is available to the existing **ToolMoa Internal** TestFlight group after signed archive and Apple package validation. See [verification results](docs/VERIFICATION.md) for build provenance and platform-specific limits.
+
 `Font toolkit native checks` runs the real font-file import/coverage/render/export integration test on iOS and Android and captures the comparison UI. Its small renamed Noto Sans KR test fixture is licensed under SIL OFL 1.1 in `test/fixtures/OFL.txt` and is not bundled into normal app builds.
 
 See [development and release notes](docs/DEVELOPMENT.md) for architecture, native font behavior, and signing setup, and [verification results](docs/VERIFICATION.md) for completed checks and remaining work. The app is implemented from the original listing and screenshots; the original source code was not recovered.

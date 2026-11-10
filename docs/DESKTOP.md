@@ -70,4 +70,6 @@ flutter test integration_test/desktop_test.dart -d macos
 
 보호 환경의 `MAC_APP_STORE_CERTIFICATES_P12`, `MAC_APP_STORE_CERTIFICATES_PASSWORD`와 기존 ASC API 키를 사용한다. 키체인·프로파일·임시 파일은 종료 시 정리하고 상세 진단은 암호화 아티팩트로만 보관한다. 업로드 후 처리 대기만 실패했다면 같은 `build_number`와 `distribute_only=true`로 이어서 확인하며 같은 빌드를 다시 업로드하지 않는다.
 
+현재 API 키에는 프로파일 및 앱 플랫폼 생성 권한이 없다. 최초 설정 시 Apple Developer 웹에서 `app.toolmoa.fontv`와 기존 Mac 배포 인증서에 연결한 `Font V macOS Internal` 프로파일을 생성하고, App Store Connect에서 macOS 플랫폼 초안을 준비해야 한다. 이후 CI는 기존 프로파일을 읽어 사용한다. 2026-11-10에 이 설정을 마쳤고, `2.0.0 (12)`를 `ToolMoa Internal`에 배포해 Apple 상태 `VALID`/`IN_BETA_TESTING` 및 그룹 연결을 확인했다. [TestFlight 관리](https://appstoreconnect.apple.com/apps/6831850547/testflight)에서 확인할 수 있다.
+
 API 및 패키징 근거: [Flutter 데스크톱](https://docs.flutter.dev/platform-integration/desktop), [MSIX 도구](https://pub.dev/packages/msix), [DirectWrite 문자 간격](https://learn.microsoft.com/en-us/windows/win32/api/dwrite_1/nf-dwrite_1-idwritetextlayout1-setcharacterspacing), [Microsoft Store 버전 규칙](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/package-version-numbering).

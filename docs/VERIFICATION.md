@@ -12,6 +12,9 @@
 - 실제 저장한 투명 PNG는 `1176×972`, 알파 범위 `0–255`다. 앱을 종료하고 새 프로세스로 다시 실행해 가져온 글꼴과 즐겨찾기 유지도 확인했다. 테스트 fixture 추가 후 목록은 500개/215개 패밀리이며 fixture는 앱 로컬에 남겨 두었다.
 - Windows 개발 인증서는 로컬 컴퓨터의 `Trusted People`에만 등록했다. 개인 키는 CI 패키징 후 삭제했으며 공개 인증서 지문은 `5C9F05645B852D21E2DEE38A3435E996C8192AF8`이다. 공용 테스트 개인 키나 신뢰 루트 등록은 사용하지 않았다.
 - 로컬 산출물과 실행 검증 JSON·PNG는 `artifacts/windows/`에 보관했다. [재현 명령과 배포 조건](DESKTOP.md)을 기록했다.
+- [macOS TestFlight 배포](https://github.com/jhoon-dev/FontV/actions/runs/42738142100)가 성공했다. `2.0.0 (12)`, 빌드 ID `01893f10-97ef-45ce-8bbd-aea6a56e163f`의 Apple 처리 상태 `VALID`, 내부 테스트 상태 `IN_BETA_TESTING`, `ToolMoa Internal` 그룹 연결 및 만료되지 않은 상태를 API로 확인했다.
+- Mac 배포 러너에서 정적 분석·35개 테스트·실제 Mac 통합 테스트를 다시 통과한 후 Mac App Store 인증서로 서명했다. 아카이브의 번들 ID·빌드 번호·샌드박스·프로비저닝·엄격한 코드 서명 검사와 Apple 패키지 검증을 통과한 뒤 업로드했다. 테스트 가능 기간은 Apple 응답 기준 2027-02-08 11:18(KST)까지다.
+- API 키의 생성 권한 제한으로 초기 Mac 프로파일과 플랫폼은 로그인된 Apple 웹 계정에서 준비했다. 프로파일 `Font V macOS Internal` (`4W7J9RL9KR`)은 `ACTIVE`다. Mac 플랫폼의 2.0.0은 수동 출시로 설정한 초안이며 공개 App Store 심사에 제출하지 않았다. iOS 배포 상태는 변경하지 않았다.
 
 ## 2026-11-08 공통 헤더 및 내부 테스트 빌드 11
 
