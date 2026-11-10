@@ -15,6 +15,10 @@ const run = (cmd, args, options = {}) => execFileSync(cmd, args, {encoding: 'utf
 const required = name => { const value = process.env[name]; if (!value) throw Error(`Missing ${name}`); delete process.env[name]; return value; };
 const keyId = required('ASC_KEY_ID'), issuer = required('ASC_ISSUER_ID');
 const p8 = Buffer.from(required('ASC_KEY_BASE64'), 'base64'), privateKey = createPrivateKey(p8);
+const signingData = process.env.FONTV_DISTRIBUTE_ONLY === 'true' ? null : {
+  certificate: required('MAC_APP_STORE_CERTIFICATES_P12'),
+  password: required('MAC_APP_STORE_CERTIFICATES_PASSWORD'),
+};
 function token() {
   const now = Math.floor(Date.now() / 1000);
   const h = Buffer.from(JSON.stringify({alg: 'ES256', kid: keyId, typ: 'JWT'})).toString('base64url');
@@ -66,8 +70,8 @@ try {
   // Repeat native verification on the signing host before any upload.
   for (const args of [['pub', 'get'], ['analyze'], ['test'], ['test', 'integration_test/desktop_test.dart', '-d', 'macos']]) console.log(run('flutter', args));
   const certFile = path.join(temp, 'mac-store.p12');
-  fs.writeFileSync(certFile, Buffer.from(required('MAC_APP_STORE_CERTIFICATES_P12'), 'base64'), {mode: 0o600});
-  const certPassword = required('MAC_APP_STORE_CERTIFICATES_PASSWORD');
+  fs.writeFileSync(certFile, Buffer.from(signingData.certificate, 'base64'), {mode: 0o600});
+  const certPassword = signingData.password;
   oldSearch = run('security', ['list-keychains', '-d', 'user']).match(/"([^"\n]+)"/g)?.map(value => value.slice(1, -1)) || [];
   const password = randomBytes(32).toString('hex');
   run('security', ['create-keychain', '-p', password, keychain]); keychainCreated = true;
