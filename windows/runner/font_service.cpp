@@ -350,7 +350,12 @@ FontService::FontService(flutter::BinaryMessenger* messenger, HWND window) : win
     }
     {
       std::lock_guard<std::mutex> lock(mutex_);
-      tasks_.push_back({method, call.arguments() ? *call.arguments() : Value(Map{}), std::move(result)});
+      // A no-argument Dart call carries an explicit null EncodableValue.
+      // The pointer itself is present, so normalize the value before queuing.
+      const auto* arguments = call.arguments();
+      const Value normalized = arguments && std::holds_alternative<Map>(*arguments)
+          ? *arguments : Value(Map{});
+      tasks_.push_back({method, normalized, std::move(result)});
     }
     ready_.notify_one();
   });
@@ -389,7 +394,11 @@ void FontService::Run() {
           completion.value = Value(Map{{Value("method"), Value(task.method)},
               {Value("hresult"), Value(static_cast<int64_t>(static_cast<uint32_t>(error.hr)))}});
         } catch (const char* code) { completion.error = code; }
-        catch (...) { completion.error = "FONT_ERROR"; }
+        catch (const std::exception& error) {
+          completion.error = "FONT_ERROR";
+          completion.value = Value(Map{{Value("method"), Value(task.method)},
+              {Value("nativeError"), Value(error.what())}});
+        } catch (...) { completion.error = "FONT_ERROR"; }
       {
         std::lock_guard<std::mutex> lock(mutex_);
         completed_.push_back(std::move(completion));
