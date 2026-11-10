@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:file_selector/file_selector.dart';
 
 @immutable
 class FontFace {
@@ -86,7 +87,9 @@ class FontService {
   bool get isDemo =>
       kIsWeb ||
       (defaultTargetPlatform != TargetPlatform.iOS &&
-          defaultTargetPlatform != TargetPlatform.android);
+          defaultTargetPlatform != TargetPlatform.android &&
+          defaultTargetPlatform != TargetPlatform.windows &&
+          defaultTargetPlatform != TargetPlatform.macOS);
 
   Future<Set<String>> hangulFonts() async {
     if (isDemo) throw UnsupportedError('Device fonts are required');
@@ -142,12 +145,26 @@ class FontService {
     clearCache();
   }
 
-  Future<bool> saveImage(Uint8List bytes, String filename) async =>
-      await channel.invokeMethod<bool>('saveImage', {
-        'bytes': bytes,
-        'filename': filename,
-      }) ??
-      false;
+  Future<bool> saveImage(Uint8List bytes, String filename) async {
+    if (!kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.windows ||
+            defaultTargetPlatform == TargetPlatform.macOS)) {
+      final location = await getSaveLocation(
+        suggestedName: filename,
+        acceptedTypeGroups: const [
+          XTypeGroup(label: 'PNG', extensions: ['png']),
+        ],
+      );
+      if (location == null) return false;
+      await XFile.fromData(bytes, mimeType: 'image/png').saveTo(location.path);
+      return true;
+    }
+    return await channel.invokeMethod<bool>('saveImage', {
+          'bytes': bytes,
+          'filename': filename,
+        }) ??
+        false;
+  }
 
   void clearCache() {
     _cache.clear();

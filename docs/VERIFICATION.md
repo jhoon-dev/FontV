@@ -1,5 +1,14 @@
 # Font V 검증 기록
 
+## 2026-11-10 데스크톱 타깃 추가
+
+- Windows/DirectWrite와 macOS/Core Text의 실제 글꼴 채널, 가져오기·문자 지원 검사·PNG 렌더링을 구현했다. 데스크톱 PNG 저장은 OS 파일 선택 창을 사용한다.
+- Windows 배포는 MSIX만 구성했다. Mac은 개발용 DMG 생성 스크립트를 추가했다. 각 OS의 네이티브 통합 검증 및 패키징 CI를 추가했으며, 원격 실행은 아직 하지 않았다.
+- `flutter analyze` 오류 없음, `flutter test` 35개 통과. 추가한 5개 테스트는 Windows/macOS의 네이티브 채널 선택, 광고 비활성화, 선택한 경로로 파일 저장·취소 및 미지원 플랫폼 데모 유지를 검증한다. 이 테스트는 실제 네이티브 바이너리를 실행하지 않는다.
+- Dart 포맷, PowerShell/Bash 스크립트 문법, YAML, macOS plist/entitlements/XIB/scheme, 아이콘 크기 및 `git diff --check`를 확인했다.
+- 로컬 Windows 빌드는 플러그인 심볼릭 링크 권한 부족으로 중단됐다. `flutter doctor -v`에서도 Visual Studio C++/CMake/Windows SDK 누락을 확인했다. macOS 네이티브 빌드는 이 Windows 호스트에서 실행할 수 없다.
+- 설치 파일 생성·네이티브 통합 테스트·실제 설치·출시 서명은 미검증이다. [재현 명령과 배포 조건](DESKTOP.md)을 기록했다.
+
 ## 2026-11-08 공통 헤더 및 내부 테스트 빌드 11
 
 - 소스 `6825023`에서 모든 플랫폼의 메인 헤더를 하나의 `Font V` 텍스트로 통일했다. ToolMoa 표기를 제거하고 Font와 V에 같은 서체·굵기·크기·테마 색상을 적용했다. 버전은 `2.0.0 (11)`이며 기존 Font V 전용 운영 광고 설정을 유지했다.

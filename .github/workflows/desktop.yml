@@ -1,0 +1,55 @@
+name: Desktop builds
+on:
+  workflow_dispatch:
+  push:
+    paths: ['lib/**', 'windows/**', 'macos/**', 'pubspec.*', 'integration_test/desktop_test.dart', 'test/**', 'tool/build_windows_msix.ps1', 'tool/build_macos.sh', '.github/workflows/desktop.yml']
+  pull_request:
+    paths: ['lib/**', 'windows/**', 'macos/**', 'pubspec.*', 'integration_test/desktop_test.dart', 'test/**', 'tool/build_windows_msix.ps1', 'tool/build_macos.sh', '.github/workflows/desktop.yml']
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          flutter-version: '3.44.2'
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - name: Native desktop font checks
+        run: flutter test integration_test/desktop_test.dart -d windows
+      - name: Create test-signed MSIX
+        shell: pwsh
+        run: ./tool/build_windows_msix.ps1 -Mode test
+      # The Windows delivery artifact contains only MSIX and its public test
+      # certificate. No EXE installer or portable application is distributed.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: FontV-Windows-MSIX-test
+          path: |
+            artifacts/windows/FontV.msix
+            artifacts/windows/FontV-test.cer
+          if-no-files-found: error
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          flutter-version: '3.44.2'
+          cache: true
+      - run: flutter pub get
+      - name: Native desktop font checks
+        run: flutter test integration_test/desktop_test.dart -d macos
+      - name: Create development DMG
+        run: bash tool/build_macos.sh
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: FontV-macOS-DMG-development
+          path: artifacts/macos/FontV.dmg
+          if-no-files-found: error

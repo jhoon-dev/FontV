@@ -2,7 +2,7 @@
 
 **ToolMoa** · Developed by **jhoon-dev**.
 
-A new chapter for the original Font V: a system font explorer for iOS and Android, built with Flutter. Font browsing and previews work offline; catalog ads use the internet.
+A new chapter for the original Font V: a system font explorer for iOS, Android, Windows and macOS, built with Flutter. Font browsing and previews work offline; mobile catalog ads use the internet.
 
 Source and CI: [jhoon-dev/fontv on GitHub](https://github.com/jhoon-dev/fontv). iOS TestFlight signing runs on GitHub's macOS runner; Android release bundles use a Linux runner. Signing credentials are held in protected Actions environments.
 
@@ -18,6 +18,8 @@ Browse real device fonts grouped into collapsible families, jump through the cat
 - Application ID (iOS & Android): `app.toolmoa.fontv` — new store listings
 - Android 10+
 - iOS 15+; macOS and Xcode required for iOS build verification and signing
+- Windows 10 1809+ (x64): MSIX distribution only; desktop C++ tooling required
+- macOS 10.15+: native desktop target and development DMG packaging; Xcode required
 - Browser target: explicitly labeled UI demo, not a system font catalog
 - English and Korean UI: follows the device language by default, with a saved override in Settings
 - AdMob native ads between every eight font families; manual release workflows select `test` (default) or Font V's `live` ad units
@@ -29,6 +31,8 @@ flutter analyze
 flutter test
 flutter build apk --debug
 ```
+
+Desktop packaging and native checks: [Windows MSIX / macOS instructions](docs/DESKTOP.md). The desktop targets are newly added; native builds and installation remain to be verified on configured Windows and Mac hosts. Desktop ads are disabled.
 
 `Font toolkit native checks` runs the real font-file import/coverage/render/export integration test on iOS and Android and captures the comparison UI. Its small renamed Noto Sans KR test fixture is licensed under SIL OFL 1.1 in `test/fixtures/OFL.txt` and is not bundled into normal app builds.
 
