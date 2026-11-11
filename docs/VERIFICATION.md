@@ -1,5 +1,15 @@
 # Font V 검증 기록
 
+## 2026-11-11 라운드 아이콘 및 Android·Windows Store 출시 준비
+
+- 앱 소스 `0eda991`에서 Windows·macOS·웹·Android 대체 아이콘에 투명 라운드 모서리를 적용했다. Android에는 적응형 아이콘을 추가했고, iOS·Google Play와 웹 maskable 원본은 플랫폼이 마스크를 적용하도록 불투명을 유지했다. 생성된 크기·코너 알파 및 정적 분석을 확인했다.
+- [기본 빌드 검증](https://github.com/jhoon-dev/FontV/actions/runs/42944411745)과 [Windows/macOS 네이티브 검증·패키징](https://github.com/jhoon-dev/FontV/actions/runs/42944412624)이 성공했다.
+- [Android AAB 13 서명·실행 검증](https://github.com/jhoon-dev/FontV/actions/runs/42944441949)이 성공했다. AAB SHA-256은 `B09253C2B9C0C5C6BB803E758F0957A0224929EC492CA01733E644FBCF93456F`다. Play Console에서 버전 `13 (2.0.0)`, 최소 API 29·타겟 SDK 36을 수락했고 지원 기기 감소는 없었다.
+- Google Play 프로덕션 버전 13의 전체 출시(기존 178개 국가/지역)와 한국어 스토어 아이콘 변경을 검토에 전송했다. 게시 개요의 **검토 중인 변경사항**에서 두 항목을 확인했다. 관리형 게시가 꺼져 있어 승인 후 자동 게시된다. 공개 출시 완료와 구분한다.
+- Microsoft Store에 Font V(`9P598CNQ2MR5`, `jhoon-dev.FontV`)를 등록했다. [Store용 Windows 패키지](https://github.com/jhoon-dev/FontV/actions/runs/42951519246)는 `2.0.13.0`/x64이며, 성공한 데스크톱 검증과 동일한 앱 소스다. 패키지 ID·Publisher·버전·개발 서명 부재 검증을 통과했다. SHA-256은 `A3E80F6DCD0BF0AC2518AFFC956E179B42F47BF27404C89DBD1D3A63950E9901`이다.
+- Partner Center에서 MSIX가 **Validated**이며, 무료 공개 배포·앱 속성·한국어/영어 설명·실제 Windows 앱 스크린샷·라운드 300px 아이콘·Windows 전용 개인정보 안내·`runFullTrust` 심사 설명과 승인 후 자동 게시 설정을 저장했다. 연령 등급은 3+로 산출됐으나 IARC 이용약관 및 성년 확인 체크는 사용자 확인 대기 중이다. Windows 인증 심사는 아직 제출하지 않았다.
+- 제출 화면 증빙과 패키지는 Git에서 제외한 `artifacts/store-release-13/`에 보관한다. 재사용할 스토어 설명·개인정보 안내·아이콘·실제 앱 PNG는 `store-assets/`에 보관한다. 스크린샷은 설치된 Windows 앱을 직접 캡처했으며 Store의 PNG 요구사항에 맞춰 형식만 변환했다.
+
 ## 2026-11-10 데스크톱 구현 및 실제 실행 검증
 
 - Windows/DirectWrite와 macOS/Core Text의 실제 글꼴 채널, 가져오기·문자 지원 검사·PNG 렌더링을 구현했다. 데스크톱 PNG 저장은 OS 파일 선택 창을 사용한다.
