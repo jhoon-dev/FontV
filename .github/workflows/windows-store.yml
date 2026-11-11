@@ -1,0 +1,82 @@
+name: Windows Store package
+on:
+  workflow_dispatch:
+    inputs:
+      verified_run_id:
+        description: Successful Desktop builds run for identical application sources
+        required: true
+        type: string
+      identity_name:
+        description: Package Identity Name from Partner Center
+        required: true
+        type: string
+      publisher:
+        description: Package Identity Publisher from Partner Center
+        required: true
+        type: string
+      publisher_display_name:
+        description: Publisher display name from Partner Center
+        required: true
+        type: string
+      version:
+        description: Four-part Store package version (last component must be zero)
+        required: true
+        default: '2.0.13.0'
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  package:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - name: Require successful checks for identical app sources
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERIFIED_RUN: ${{ inputs.verified_run_id }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:VERIFIED_RUN -notmatch '^\d+$') { throw 'Invalid verification run' }
+          $fontvRun = gh api "repos/$env:GH_REPO/actions/runs/$env:VERIFIED_RUN" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $fontvRun.name -ne 'Desktop builds' -or $fontvRun.conclusion -ne 'success' -or $fontvRun.head_repository.full_name -ne $env:GH_REPO) { throw 'Desktop verification must succeed' }
+          git merge-base --is-ancestor $fontvRun.head_sha $env:GITHUB_SHA
+          if ($LASTEXITCODE -ne 0) { throw 'Verified commit is not an ancestor' }
+          git diff --exit-code $fontvRun.head_sha $env:GITHUB_SHA -- lib windows pubspec.yaml pubspec.lock test integration_test test_driver
+          if ($LASTEXITCODE -ne 0) { throw 'Application sources differ from verification' }
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          flutter-version: '3.44.2'
+          cache: true
+      - name: Build and validate unsigned Microsoft Store MSIX
+        shell: pwsh
+        env:
+          FONTV_IDENTITY: ${{ inputs.identity_name }}
+          FONTV_PUBLISHER: ${{ inputs.publisher }}
+          FONTV_PUBLISHER_NAME: ${{ inputs.publisher_display_name }}
+          FONTV_STORE_VERSION: ${{ inputs.version }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:FONTV_STORE_VERSION -notmatch '^\d+\.\d+\.\d+\.0$') { throw 'Store version must end in zero' }
+          ./tool/build_windows_msix.ps1 -Mode store -IdentityName $env:FONTV_IDENTITY -Publisher $env:FONTV_PUBLISHER -PublisherDisplayName $env:FONTV_PUBLISHER_NAME -Version $env:FONTV_STORE_VERSION
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $fontvZip = [IO.Compression.ZipFile]::OpenRead((Join-Path $PWD 'artifacts/windows/FontV.msix'))
+          try {
+            $fontvReader = [IO.StreamReader]::new($fontvZip.GetEntry('AppxManifest.xml').Open())
+            try { [xml]$fontvManifest = $fontvReader.ReadToEnd() } finally { $fontvReader.Dispose() }
+            if ($fontvManifest.Package.Identity.Name -ne $env:FONTV_IDENTITY -or $fontvManifest.Package.Identity.Publisher -ne $env:FONTV_PUBLISHER -or $fontvManifest.Package.Identity.Version -ne $env:FONTV_STORE_VERSION) { throw 'Store package identity mismatch' }
+            if ($fontvManifest.Package.Properties.PublisherDisplayName -ne $env:FONTV_PUBLISHER_NAME) { throw 'Publisher display name mismatch' }
+            if ($fontvZip.GetEntry('AppxSignature.p7x')) { throw 'Store package must not use a development signature' }
+          } finally { $fontvZip.Dispose() }
+          Get-FileHash artifacts/windows/FontV.msix -Algorithm SHA256
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: FontV-Windows-Store-MSIX
+          path: artifacts/windows/FontV.msix
+          if-no-files-found: error
