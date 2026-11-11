@@ -1,5 +1,14 @@
 # Font V 검증 기록
 
+## 2026-11-11 iOS 상태바 탭 및 TestFlight 빌드 14
+
+- 소스 `0234552`에 iPhone·iPad의 상단 상태바 탭으로 폰트·즐겨찾기 목록 맨 위로 이동하는 동작을 추가했다. iPad의 상세 미리보기는 별도 스크롤을 사용한다.
+- 앱 버전은 `2.0.0`을 유지하고 빌드 번호를 `14`로 올렸다. 기존 Font V 운영 광고 설정을 사용했다.
+- 정적 분석 오류·린트 없음, 전체 단위·위젯 테스트 37개 통과. iPhone·iPad 화면 크기에서 폰트·즐겨찾기 목록의 최상단 이동과 iPad 상세 미리보기의 스크롤 독립성을 검증했다.
+- [공통 빌드 검증](https://github.com/jhoon-dev/FontV/actions/runs/42969768547)에서 iOS 시뮬레이터 빌드와 Android 디버그 빌드가 성공했다.
+- [iOS 서명·검증·업로드 CI](https://github.com/jhoon-dev/FontV/actions/runs/42969782231)가 성공했다. 결과 파일에서 Apple 빌드 `a6196577-9216-4c05-b73a-3b9eb42f0b26`의 버전 `2.0.0 (14)`, 내부 테스트 상태 `IN_BETA_TESTING`, 기존 `ToolMoa Internal` 그룹 연결을 확인했다.
+- 배포 결과와 암호화된 진단은 Git에서 제외한 `artifacts/internal-build14/ios-ci/`에 보관한다. 실제 iPhone·iPad에서 상태바를 탭한 검증은 아직 진행하지 않았다.
+
 ## 2026-11-11 라운드 아이콘 및 Android·Windows Store 출시 준비
 
 - 앱 소스 `0eda991`에서 Windows·macOS·웹·Android 대체 아이콘에 투명 라운드 모서리를 적용했다. Android에는 적응형 아이콘을 추가했고, iOS·Google Play와 웹 maskable 원본은 플랫폼이 마스크를 적용하도록 불투명을 유지했다. 생성된 크기·코너 알파 및 정적 분석을 확인했다.
