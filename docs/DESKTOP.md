@@ -30,6 +30,12 @@ Microsoft Store 제출용:
 
 Store 모드는 Store에서 서명할 MSIX를 만든다. 저장소의 `app.toolmoa.fontv`와 `CN=ToolMoa`는 로컬 기본값이며 Store에 등록된 ID라고 가정하지 않는다. Store 업로드는 자동 실행하지 않는다. MSIX 버전은 pubspec의 빌드 번호를 자동으로 사용하지 않으므로 업데이트마다 네 자리 `-Version`을 증가시킨다. Store 제출 시 마지막 자리는 `0`으로 유지한다.
 
+2026-11-11에 Microsoft Store 제품 **Font V**를 등록했다. Store ID는 `9P598CNQ2MR5`, Package Identity Name은 `jhoon-dev.FontV`, Publisher는 `CN=C488F7ED-2611-417D-B3ED-C39E81B7590E`, PublisherDisplayName은 `JIN HOON KIM`이다. 개발용 MSIX의 ID와 별개다.
+
+`Windows Store package` 수동 워크플로는 이 식별값과 네 자리 Store 버전을 입력받는다. 성공한 `Desktop builds` 실행과 앱·테스트 소스가 동일한지 확인한 뒤 서명하지 않은 Store용 MSIX를 생성한다. 패키지 식별값·버전과 개발 서명 부재를 검증하며, `FontV-Windows-Store-MSIX` 아티팩트를 만든다. [첫 Store 패키지 검증](https://github.com/jhoon-dev/FontV/actions/runs/42951519246)의 버전은 `2.0.13.0`이다.
+
+Store 등록용 한국어·영어 설명, Windows 전용 개인정보 안내와 300px 라운드 아이콘은 `store-assets/windows-*` 및 `store-assets/microsoft-store-icon.png`에 보관한다. Windows 버전은 광고·서버 동기화 없이 동작한다. `runFullTrust`는 Flutter Win32 실행과 DirectWrite/Direct2D 및 사용자가 선택한 파일의 로컬 처리를 위한 권한이며 관리자 권한을 요청하지 않는다.
+
 외부 배포용 인증서가 있는 경우 `FONTV_MSIX_CERTIFICATE_PATH`, `FONTV_MSIX_CERTIFICATE_PASSWORD` 환경변수를 설정하고 `-Mode signed -Publisher '<인증서 Subject>'`로 만든다. 서명 검증이 성공해야 완료된다. 인증서와 암호는 저장소에 넣지 않는다.
 
 ## macOS

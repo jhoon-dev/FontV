@@ -1,0 +1,16 @@
+Font V is an offline font explorer for Windows. Browse the fonts installed on your PC, preview your own text, and find the right typeface for your next design.
+
+• Browse font families and styles with search and an alphabetical index.
+• Compare 2–4 fonts using the same text and typography settings.
+• Adjust size, letter spacing, line height, alignment, and text/background colors.
+• Check character coverage, including a filter for modern Hangul syllables.
+• Save favorites and organize fonts into named collections.
+• Export PNG previews with optional font information and transparency.
+• Import TTF/OTF files into app-local storage without installing fonts system-wide.
+• Choose English or Korean and one of five color themes.
+
+Your font catalog, imported fonts, text, favorites, and settings stay on your device. Windows has no ads, account requirement, or in-app purchases. Font availability varies with the fonts installed on your PC. Imported font files are not licensed or distributed by Font V; use fonts according to their owners' licenses.
+
+Requires Windows 10 version 1809 or later, x64.
+
+ToolMoa · Developed by jhoon-dev

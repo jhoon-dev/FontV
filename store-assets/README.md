@@ -8,6 +8,7 @@ Regenerate the existing wordmark with:
 ```
 
 - Windows ICO/MSIX, macOS asset catalog, website and ordinary web icons use transparent rounded corners (22% radius). macOS also has an 8% transparent margin.
+- `microsoft-store-icon.png` (300 px) is the rounded Store app tile override. `windows-listing-en.txt`, `windows-listing-ko.txt` and `windows-privacy.txt` contain the Windows Store text. `windows-preview.png` is an actual Windows app screenshot; only the image format was converted to meet the Store's PNG requirement.
 - Android has an opaque background and a separate foreground in its adaptive icon; the launcher applies its own mask. Rounded PNGs are the fallback. The foreground stays inside the adaptive safe zone.
 - iOS and `app-store-icon.png` (1024 px) are opaque: Apple applies its own corner mask.
 - `google-play-icon.png` (512 px) is opaque and full-bleed: Google Play applies its own corners and shadow. Upload this file to each localized listing.

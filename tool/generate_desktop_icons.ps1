@@ -11,6 +11,7 @@ try {
     $winResources = Join-Path $fontProjectRoot 'windows/runner/resources'
     $winLogo = Join-Path $winResources 'msix_logo.png'
     Write-FontIcon $winLogo 1024 -Rounded
+    Write-FontIcon (Join-Path $fontProjectRoot 'store-assets/microsoft-store-icon.png') 300 -Rounded
     $image = [Drawing.Image]::FromFile($winLogo)
     $buffer = [IO.MemoryStream]::new()
     $writer = [IO.BinaryWriter]::new($buffer)

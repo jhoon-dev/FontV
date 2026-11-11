@@ -1,0 +1,23 @@
+Font V for Windows — Privacy Policy
+Effective: November 11, 2026
+Provider: ToolMoa · Developer: jhoon-dev
+
+Font V reads the names, families and styles of fonts installed on your PC and generates previews locally. Text you enter, favorites, collections, typography settings, theme and language are stored on your device. Imported TTF/OTF files are copied into app-local storage; removing an imported font removes that copy and leaves the original file unchanged.
+
+The Windows version has no ads, analytics service, account registration or cloud synchronization. Font V does not send your font catalog, imported files, preview text or settings to a server. It does not request access to your location, contacts, camera or microphone.
+
+Saving a PNG writes a preview to the location you choose. Sharing a preview through another application is your choice, and that application's data handling follows its own policy. Operating-system backup and restore follow your Windows settings. App data can be removed by clearing the app's data or uninstalling; OS backups are managed separately in Windows.
+
+Privacy and support inquiries: contact@toolmoa.app or https://toolmoa.app/apps/fontv/support/. Information you voluntarily provide in a support request is used to respond to that request. This notice will be updated when the Windows app's data practices change.
+
+Font V Windows 개인정보처리방침
+시행일: 2026년 11월 11일
+제공자: ToolMoa · 개발자: jhoon-dev
+
+Font V는 PC에 설치된 글꼴의 이름·패밀리·스타일을 읽고 기기에서 미리보기를 생성합니다. 입력 문장, 즐겨찾기, 컬렉션, 미리보기 설정, 테마와 언어는 기기에 저장됩니다. TTF/OTF 가져오기는 앱 저장소에 사본을 만들며, 앱에서 가져온 글꼴을 제거해도 원본 파일은 변경하지 않습니다.
+
+Windows 버전에는 광고, 분석 서비스, 회원가입과 클라우드 동기화가 없습니다. Font V는 글꼴 목록, 가져온 파일, 미리보기 문장이나 설정을 서버로 전송하지 않습니다. 위치·주소록·카메라·마이크 접근 권한을 요구하지 않습니다.
+
+PNG 저장은 사용자가 선택한 위치에 미리보기를 기록합니다. 다른 앱을 통한 공유는 사용자가 선택하며, 공유 대상 앱의 처리는 해당 서비스의 방침을 따릅니다. 운영체제의 백업·복원은 Windows 설정을 따릅니다. 앱 데이터 삭제 또는 앱 제거로 로컬 데이터를 삭제할 수 있고 OS 백업은 Windows에서 별도로 관리합니다.
+
+개인정보·지원 문의: contact@toolmoa.app 또는 https://toolmoa.app/apps/fontv/support/. 사용자가 문의에 자발적으로 제공한 정보는 답변에 사용합니다. Windows 앱의 데이터 처리 방식이 바뀌면 이 안내를 갱신합니다.
