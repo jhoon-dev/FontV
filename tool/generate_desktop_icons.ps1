@@ -1,24 +1,17 @@
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $fontProjectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-$source = Join-Path $fontProjectRoot 'ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png'
-$image = [Drawing.Image]::FromFile($source)
-function Resize-FontIcon([string]$Path, [int]$Size) {
-    $output = [Drawing.Bitmap]::new($Size, $Size)
-    $graphics = [Drawing.Graphics]::FromImage($output)
-    $graphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-    $graphics.DrawImage($image, 0, 0, $Size, $Size)
-    $output.Save($Path, [Drawing.Imaging.ImageFormat]::Png)
-    $graphics.Dispose()
-    $output.Dispose()
-}
+. (Join-Path $PSScriptRoot 'icon_drawing.ps1')
+$image = $null
 try {
     $macIcons = Join-Path $fontProjectRoot 'macos/Runner/Assets.xcassets/AppIcon.appiconset'
     foreach ($size in @(16, 32, 64, 128, 256, 512, 1024)) {
-        Resize-FontIcon (Join-Path $macIcons "app_icon_$size.png") $size
+        Write-FontIcon (Join-Path $macIcons "app_icon_$size.png") $size -Rounded -Inset 0.08
     }
     $winResources = Join-Path $fontProjectRoot 'windows/runner/resources'
-    Resize-FontIcon (Join-Path $winResources 'msix_logo.png') 1024
+    $winLogo = Join-Path $winResources 'msix_logo.png'
+    Write-FontIcon $winLogo 1024 -Rounded
+    $image = [Drawing.Image]::FromFile($winLogo)
     $buffer = [IO.MemoryStream]::new()
     $writer = [IO.BinaryWriter]::new($buffer)
     # ICO directory entries followed by PNG payloads; 0 encodes 256 pixels.
@@ -46,4 +39,4 @@ try {
     $writer.Flush()
     [IO.File]::WriteAllBytes((Join-Path $winResources 'app_icon.ico'), $buffer.ToArray())
     $writer.Dispose(); $buffer.Dispose()
-} finally { $image.Dispose() }
+} finally { if ($image) { $image.Dispose() } }
