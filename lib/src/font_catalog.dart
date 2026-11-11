@@ -15,6 +15,7 @@ class FontCatalog extends StatefulWidget {
   const FontCatalog({
     super.key,
     required this.controller,
+    required this.scrollController,
     required this.fonts,
     required this.header,
     required this.emptyState,
@@ -23,6 +24,7 @@ class FontCatalog extends StatefulWidget {
     this.ads,
   });
   final FontController controller;
+  final ScrollController scrollController;
   final List<FontFace> fonts;
   final Widget header;
   final Widget emptyState;
@@ -35,7 +37,7 @@ class FontCatalog extends StatefulWidget {
 }
 
 class _FontCatalogState extends State<FontCatalog> {
-  final _scroll = ScrollController(keepScrollOffset: false);
+  ScrollController get _scroll => widget.scrollController;
   final _headerKey = GlobalKey();
   final _expanded = <String>{};
   final _collapsedSearch = <String>{};
@@ -67,6 +69,10 @@ class _FontCatalogState extends State<FontCatalog> {
   @override
   void didUpdateWidget(covariant FontCatalog oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.scrollController != _scroll) {
+      oldWidget.scrollController.removeListener(_onScroll);
+      _scroll.addListener(_onScroll);
+    }
     if (_lastQuery != widget.controller.query ||
         _lastTab != widget.controller.tab ||
         _lastFilter !=
@@ -385,7 +391,7 @@ class _FontCatalogState extends State<FontCatalog> {
 
   @override
   void dispose() {
-    _scroll.dispose();
+    _scroll.removeListener(_onScroll);
     super.dispose();
   }
 }

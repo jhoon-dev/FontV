@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:font_v/src/app.dart';
 import 'package:font_v/src/ads.dart';
@@ -47,6 +48,68 @@ class _FeedAds extends AdsController {
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({'language': 'ko'}));
+
+  for (final size in [const Size(390, 844), const Size(1200, 900)]) {
+    testWidgets(
+      'iOS status bar tap scrolls catalog to top at $size',
+      (tester) async {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = size;
+        tester.view.padding = const FakeViewPadding(top: 24);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetPadding);
+        final c = FontController(service: _AlphabetFonts());
+        await tester.pumpWidget(FontVApp(controller: c));
+        await tester.pumpAndSettle();
+
+        final catalog = find.byKey(const Key('font-catalog-scroll'));
+        final scroll = tester.widget<CustomScrollView>(catalog).controller!;
+        ScrollPosition? detailPosition;
+        if (size.width >= 900) {
+          await tester.tap(find.byKey(const ValueKey('font-index:B')));
+          await tester.pumpAndSettle();
+          await tester.tap(find.byKey(const ValueKey('font:face:1')));
+          await tester.pumpAndSettle();
+          final detail = find.descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          );
+          detailPosition = tester.state<ScrollableState>(detail).position;
+          detailPosition.jumpTo(100);
+          await tester.pumpAndSettle();
+        }
+
+        c.favorites.addAll(c.fonts.map((font) => font.id));
+        for (final tab in [0, 1]) {
+          c.setTab(tab);
+          await tester.pumpAndSettle();
+          await tester.tap(find.byKey(const ValueKey('font-index:Z')));
+          await tester.pumpAndSettle();
+          expect(scroll.offset, greaterThan(0));
+          final detailOffset = detailPosition?.pixels;
+
+          await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+            SystemChannels.statusBar.name,
+            SystemChannels.statusBar.codec.encodeMethodCall(
+              const MethodCall('handleScrollToTop'),
+            ),
+            (_) {},
+          );
+          await tester.pumpAndSettle();
+
+          expect(scroll.offset, 0);
+          expect(
+            find.byKey(const Key('font-search')).hitTestable(),
+            findsOneWidget,
+          );
+          expect(detailPosition?.pixels, detailOffset);
+        }
+        expect(tester.takeException(), isNull);
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+  }
 
   testWidgets(
     'feed ads respect family boundaries, index, failures and filters',

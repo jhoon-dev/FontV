@@ -110,6 +110,7 @@ class FontHome extends StatefulWidget {
 
 class _FontHomeState extends State<FontHome> {
   final _search = TextEditingController();
+  final _catalogScroll = ScrollController(keepScrollOffset: false);
   FontFace? _selected;
   FontController get c => widget.controller;
 
@@ -138,7 +139,7 @@ class _FontHomeState extends State<FontHome> {
     final wide = MediaQuery.sizeOf(context).width >= 900;
     final fonts = c.visibleFonts;
     final selected = c.fonts.where((f) => f.id == _selected?.id).firstOrNull;
-    return Scaffold(
+    final scaffold = Scaffold(
       appBar: AppBar(
         toolbarHeight: 78,
         titleSpacing: 24,
@@ -304,12 +305,15 @@ class _FontHomeState extends State<FontHome> {
         ],
       ),
     );
+    // Scaffold uses this controller for the iOS status bar tap gesture.
+    return PrimaryScrollController(controller: _catalogScroll, child: scaffold);
   }
 
   Widget _catalog(BuildContext context, bool wide, List<FontFace> fonts) {
     return FontCatalog(
       ads: widget.ads,
       controller: c,
+      scrollController: _catalogScroll,
       fonts: fonts,
       selectedFontId: wide ? _selected?.id : null,
       onOpen: (face) => _open(face, wide),
@@ -499,6 +503,7 @@ class _FontHomeState extends State<FontHome> {
   @override
   void dispose() {
     _search.dispose();
+    _catalogScroll.dispose();
     super.dispose();
   }
 }
@@ -520,6 +525,7 @@ class FontDetail extends StatelessWidget {
     builder: (context, _) {
       final c = controller;
       final content = ListView(
+        primary: !embedded,
         padding: const EdgeInsets.all(24),
         children: [
           Row(
